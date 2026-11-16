@@ -1,5 +1,6 @@
 # livd
 
+[![CI](https://github.com/bin-ran/livd/actions/workflows/ci.yml/badge.svg)](https://github.com/bin-ran/livd/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/livd.svg)](https://www.npmjs.com/package/livd)
 [![npm downloads](https://img.shields.io/npm/dm/livd.svg)](https://www.npmjs.com/package/livd)
 [![license](https://img.shields.io/npm/l/livd.svg)](./LICENSE)
@@ -110,28 +111,28 @@ export default defineConfig({
 
 ## 体积与依赖
 
-| 指标 | 数值 |
-|---|---|
-| npm tarball | ~180 kB（gzip） |
-| 安装后磁盘占用 | ~950 kB |
-| **运行时依赖** | **0 个** |
+| 指标           | 数值            |
+| -------------- | --------------- |
+| npm tarball    | ~180 kB（gzip） |
+| 安装后磁盘占用 | ~950 kB         |
+| **运行时依赖** | **0 个**        |
 
 `citty`、`sirv`、`picocolors`、`chokidar`、`httpxy`、`selfsigned` 全部内联进产物，并按功能拆成按需加载的 chunk：
 
-| chunk | 什么时候加载 |
-|---|---|
-| `cli.mjs` + `server-*.mjs` | 启动即加载 |
-| `live.mjs` + `chokidar-*.mjs` | 只在 `-w/--watch` 时 |
-| `proxy.mjs` | 只在 `-x/--proxy` 时 |
-| `selfsigned-*.mjs` | 只在 `--https` 且没给证书时 |
+| chunk                         | 什么时候加载                |
+| ----------------------------- | --------------------------- |
+| `cli.mjs` + `server-*.mjs`    | 启动即加载                  |
+| `live.mjs` + `chokidar-*.mjs` | 只在 `-w/--watch` 时        |
+| `proxy.mjs`                   | 只在 `-x/--proxy` 时        |
+| `selfsigned-*.mjs`            | 只在 `--https` 且没给证书时 |
 
 ## 反向代理的三种写法
 
-| 写法 | 例子 | 路径语义 |
-|---|---|---|
-| shorthand URL | `-x http://localhost:7000/api` | 保留前缀：`/api/users` → `/api/users` |
-| 配置文件 | `-x webpack.config.js` | 自动从 `devServer.proxy` 或 `proxy` 读取，兼容 webpack-dev-server |
-| 配置对象 | `{ '/api': { target, stripContext: true } }` | 见下表 |
+| 写法          | 例子                                         | 路径语义                                                          |
+| ------------- | -------------------------------------------- | ----------------------------------------------------------------- |
+| shorthand URL | `-x http://localhost:7000/api`               | 保留前缀：`/api/users` → `/api/users`                             |
+| 配置文件      | `-x webpack.config.js`                       | 自动从 `devServer.proxy` 或 `proxy` 读取，兼容 webpack-dev-server |
+| 配置对象      | `{ '/api': { target, stripContext: true } }` | 见下表                                                            |
 
 每个 context 支持：
 
@@ -266,15 +267,16 @@ tag 推上去后，CI 用 **npm Trusted Publishing（OIDC）** 发布，不需�
    ```
 3. npm 后台 **Settings → Trusted publishing → Add trusted publisher**，选 GitHub Actions：
 
-   | 字段 | 值 |
-   |---|---|
-   | Organization or user | 你的 GitHub 用户名 |
-   | Repository | 仓库名 |
-   | Workflow filename | `release.yml`（只写文件名，带 `.yml`，且必须真实存在于 `.github/workflows/`） |
-   | Environment name | 留空（除非用了 GitHub Environments） |
-   | Allowed actions | **勾上允许 `npm publish`**（默认只允许 `npm stage publish`，我们的工作流用的是 `npm publish`） |
+   | 字段                 | 值                                                                                             |
+   | -------------------- | ---------------------------------------------------------------------------------------------- |
+   | Organization or user | 你的 GitHub 用户名                                                                             |
+   | Repository           | 仓库名                                                                                         |
+   | Workflow filename    | `release.yml`（只写文件名，带 `.yml`，且必须真实存在于 `.github/workflows/`）                  |
+   | Environment name     | 留空（除非用了 GitHub Environments）                                                           |
+   | Allowed actions      | **勾上允许 `npm publish`**（默认只允许 `npm stage publish`，我们的工作流用的是 `npm publish`） |
 
    配置后 **2 天内**要完成一次成功发布，否则该配置过期。
+
 4. 把 **Publishing access** 收紧为「必须 2FA 或 trusted publisher」，并 revoke 掉旧的 Automation token。
 5. 验证：`Actions` 里跑一次 `mode=stage`，再 `pnpm release` + `git push --follow-tags` 发正式版。
 
