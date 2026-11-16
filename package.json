@@ -25,7 +25,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22.18"
   },
   "sideEffects": false,
   "keywords": [
@@ -49,7 +49,8 @@
     "prepublishOnly": "npm run check && npm run build && npm run smoke",
     "pack:check": "npm pack --dry-run",
     "release": "bumpp --no-push",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "prepack": "npm run build"
   },
   "dependencies": {},
   "devDependencies": {

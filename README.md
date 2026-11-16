@@ -22,7 +22,7 @@ npm i -g livd      # 全局命令
 npx livd           # 或直接用 npx
 ```
 
-要求 Node.js >= 22.12。
+要求 Node.js >= 22.18。
 
 ## 命令行
 
