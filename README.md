@@ -255,6 +255,7 @@ pnpm smoke                       # 用 dist 真实产物起服务做冒烟测试
 pnpm verify:meta                 # 发布元数据自检（仓库字段 / 零依赖 / workflow 权限）
 pnpm pack:check                  # 看一眼 npm 包里到底有什么
 pnpm release                     # 本地 bump 版本 + commit + tag（不 push）
+pnpm name-check <name>           # 发版前体检包名：注册表状态 + 相似名邻居 + 同形风险
 ```
 
 CI 用 `pnpm install --frozen-lockfile`，锁文件与 `package.json` 不一致时会直接失败；

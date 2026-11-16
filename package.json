@@ -61,6 +61,7 @@
     "pack:check": "npm pack --dry-run",
     "release": "bumpp --no-push",
     "smoke": "node scripts/smoke.mjs",
+    "name-check": "node scripts/name-check.mjs",
     "prepack": "npm run build"
   },
   "dependencies": {},
