@@ -1,10 +1,19 @@
 name: Release
 
-# 推 v* tag 时自动发布到 npm（Trusted Publishing：OIDC，不需要 NPM_TOKEN）
+# 两种触发方式：
+# 1) 推 v* tag  → 正式发布（Trusted Publishing：OIDC，无需 NPM_TOKEN）
+# 2) 手动触发   → 先 dry-run 或 stage 验证链路，确认无误后再发版
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'dry-run 只构建打包不上传；stage 走 staged publish（会真正走 OIDC）；publish 正式发布'
+        type: choice
+        options: [dry-run, stage, publish]
+        default: dry-run
 
 permissions:
   contents: write # 创建 GitHub Release
@@ -35,15 +44,24 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Verify
-        run: pnpm check && pnpm exec oxfmt --check src test scripts
+        run: pnpm verify:meta && pnpm check && pnpm exec oxfmt --check src test scripts
 
       - name: Build
         run: pnpm build
 
       - name: Publish
-        run: npm publish --provenance --access public
+        env:
+          # tag 推送时 inputs.mode 为空 → 走正式发布
+          MODE: ${{ inputs.mode || 'publish' }}
+        run: |
+          case "$MODE" in
+            dry-run) npm publish --dry-run --access public ;;
+            stage)   npm stage publish ;;
+            *)       npm publish --provenance --access public ;;
+          esac
 
       - name: Create GitHub Release
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
