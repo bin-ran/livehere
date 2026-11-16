@@ -49,7 +49,19 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # 推旧 tag 时（`git push --follow-tags` 会带上历史 tag）容易重复触发，
+      # 版本已存在于 npm 就直接跳过，让工作流幂等
+      - name: Check version on npm
+        id: published
+        run: |
+          spec="$(node -p "require('./package.json').name")@$(node -p "require('./package.json').version")"
+          if npm view "$spec" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$spec 已存在于 npm，本模式（正式发布）将跳过"
+          fi
+
       - name: Publish
+        if: steps.published.outputs.exists != 'true' || inputs.mode == 'dry-run' || inputs.mode == 'stage'
         env:
           # tag 推送时 inputs.mode 为空 → 走正式发布
           MODE: ${{ inputs.mode || 'publish' }}
@@ -61,7 +73,7 @@ jobs:
           esac
 
       - name: Create GitHub Release
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.published.outputs.exists != 'true'
         uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
