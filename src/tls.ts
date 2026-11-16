@@ -16,10 +16,9 @@ const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
  */
 export async function loadTlsMaterial(config: ResolvedOptions): Promise<TlsMaterial> {
   if (config.cert !== undefined && config.key !== undefined) {
-    const [cert, key] = await Promise.all([
-      readPem(config.cert, '证书'),
-      readPem(config.key, '私钥'),
-    ]);
+    // 顺序读取：两个文件都缺时要报「证书」，不能依赖 Promise.all 的竞速结果
+    const cert = await readPem(config.cert, '证书');
+    const key = await readPem(config.key, '私钥');
     return { cert, key };
   }
 

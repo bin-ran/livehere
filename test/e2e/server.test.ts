@@ -247,10 +247,22 @@ describe('生命周期', () => {
     await expect(fetch(server.url)).rejects.toThrow();
   });
 
-  it('证书文件不存在时抛出可读错误', async () => {
+  it('两个文件都不存在时，优先报证书', async () => {
     await expect(
       createServer({ root, port: 0, cert: 'no-cert.pem', key: 'no-key.pem' }),
     ).rejects.toThrow('证书文件不存在');
+  });
+
+  it('私钥缺失时明确指出是私钥', async () => {
+    const certPath = path.join(root, 'dummy-cert.pem');
+    await writeFile(certPath, 'dummy cert content');
+    try {
+      await expect(
+        createServer({ root, port: 0, cert: certPath, key: 'no-key.pem' }),
+      ).rejects.toThrow('私钥文件不存在');
+    } finally {
+      await rm(certPath, { force: true });
+    }
   });
 
   it('端口已被占用时抛出可读错误', async () => {
