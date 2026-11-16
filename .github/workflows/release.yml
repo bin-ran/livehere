@@ -12,7 +12,7 @@ on:
       mode:
         description: 'dry-run 只构建打包不上传；stage 走 staged publish（会真正走 OIDC）；publish 正式发布'
         type: choice
-        options: [dry-run, stage, publish]
+        options: [ dry-run, stage, publish ]
         default: dry-run
 
 permissions:
@@ -23,15 +23,15 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 12
+      # 版本由 package.json 的 packageManager 决定：
+      # 同时写 with.version 会让 action-setup 报 Multiple versions of pnpm specified
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
@@ -62,6 +62,6 @@ jobs:
 
       - name: Create GitHub Release
         if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
