@@ -1,5 +1,10 @@
 # livd
 
+[![npm version](https://img.shields.io/npm/v/livd.svg)](https://www.npmjs.com/package/livd)
+[![npm downloads](https://img.shields.io/npm/dm/livd.svg)](https://www.npmjs.com/package/livd)
+[![license](https://img.shields.io/npm/l/livd.svg)](./LICENSE)
+[![node](https://img.shields.io/node/v/livd.svg)](https://nodejs.org)
+
 Serve a folder over HTTP in one command. **Safe by default**: binds to loopback, refuses dotfiles and
 path traversal, and never crashes on a busy port.
 
@@ -245,8 +250,36 @@ git push --follow-tags
 ```
 
 tag 推上去后，CI 用 **npm Trusted Publishing（OIDC）** 发布，不需要 `NPM_TOKEN`，并自动带 provenance。
-首次发布前需要在 npm 后台的包设置里添加 trusted publisher（仓库 + workflow 文件名 `release.yml`）；
-也可以先手动 `npm publish --access public` 占位一次。
+
+也可以手动触发 workflow 先验证链路：`Actions → Release → Run workflow`，`mode` 选
+`dry-run`（只构建打包）、`stage`（staged publish，会真正走 OIDC）或 `publish`（正式发布）。
+
+### 首次发布 checklist
+
+1. **补全 `package.json` 的仓库信息**（`repository` / `homepage` / `bugs`）——
+   provenance 会校验 `repository` 与实际运行的工作流仓库是否一致，写错就只能再发一个版本修。
+   `pnpm verify:meta` 会在发布前拦住占位符。
+2. **手动发布一次**，让包在 npm 上存在：
+   ```sh
+   npm login
+   npm publish --access public
+   ```
+3. npm 后台 **Settings → Trusted publishing → Add trusted publisher**，选 GitHub Actions：
+
+   | 字段 | 值 |
+   |---|---|
+   | Organization or user | 你的 GitHub 用户名 |
+   | Repository | 仓库名 |
+   | Workflow filename | `release.yml`（只写文件名，带 `.yml`，且必须真实存在于 `.github/workflows/`） |
+   | Environment name | 留空（除非用了 GitHub Environments） |
+   | Allowed actions | **勾上允许 `npm publish`**（默认只允许 `npm stage publish`，我们的工作流用的是 `npm publish`） |
+
+   配置后 **2 天内**要完成一次成功发布，否则该配置过期。
+4. 把 **Publishing access** 收紧为「必须 2FA 或 trusted publisher」，并 revoke 掉旧的 Automation token。
+5. 验证：`Actions` 里跑一次 `mode=stage`，再 `pnpm release` + `git push --follow-tags` 发正式版。
+
+> trusted publisher 的字段一旦创建不能修改，要改只能删除重建（每个包最多 10 条）。
+> 仓库必须是公开的，否则拿不到 provenance。
 
 发布前可以本地先看一眼产物：
 
