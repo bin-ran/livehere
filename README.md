@@ -349,6 +349,10 @@ npm publish --dry-run  # 完整走一遍发布流程，但不真的上传
 - [x] `livehere.config.ts` 配置文件（CLI > 配置 > 默认值）
 - [ ] M3 后续：单二进制发行（Node SEA）
 
+## 变更记录
+
+见 [CHANGELOG.md](./CHANGELOG.md)。
+
 ## License
 
 MIT
