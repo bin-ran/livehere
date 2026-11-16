@@ -188,12 +188,14 @@ describe('下载与预览', () => {
     const body = await (await fetch(base)).text();
     const rows = body.split('<li').filter((row) => row.includes('class="row'));
 
-    const fileRow = rows.find((row) => row.includes('>hello.txt<'));
-    const dirRow = rows.find((row) => row.includes('>app/<'));
+    const fileRow = rows.find((row) => row.includes('>hello.txt<')) ?? '';
+    const dirRow = rows.find((row) => row.includes('>app/<')) ?? '';
 
-    expect(fileRow).toBeDefined();
+    expect(fileRow).not.toBe('');
     expect(fileRow).toContain('download');
-    expect(dirRow).toBeDefined();
+    // 下载入口排在大小/时间之后，作为行尾操作
+    expect(fileRow.indexOf('download')).toBeGreaterThan(fileRow.indexOf('<time'));
+    expect(dirRow).not.toBe('');
     expect(dirRow).not.toContain('download');
   });
 

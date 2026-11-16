@@ -110,8 +110,8 @@ function renderListing(pathname: string, entries: Entry[]): string {
 
     return `<li class="row${entry.isDir ? ' dir' : ''}">
 <a class="name" href="${href}"><span class="ico">${icon}</span><span>${escapeHtml(name)}</span></a>
-${download}
 <span class="meta">${meta}</span>
+${download}
 </li>`;
   });
 
@@ -170,9 +170,9 @@ header{margin-bottom:1rem}
 @media (max-width:620px){
   body{padding:1.25rem .75rem 3rem}
   .row{grid-template-columns:1fr auto;row-gap:.15rem}
-  .meta{grid-column:1/-1;padding-left:calc(18px + .6rem)}
-  .meta{justify-content:flex-start}
-  .dl{opacity:1}
+  .name{grid-area:1/1}
+  .dl{grid-area:1/2;opacity:1}
+  .meta{grid-area:2/1/3/3;justify-content:flex-start;padding-left:calc(18px + .6rem)}
   .dir .meta{display:none}
 }
 </style>
