@@ -5,11 +5,11 @@ import type { ServeOptions } from './options';
 
 /** 自动查找的文件名，按优先级排列 */
 const CONFIG_FILES = [
-  'livd.config.ts',
-  'livd.config.mts',
-  'livd.config.js',
-  'livd.config.mjs',
-  'livd.config.json',
+  'livehere.config.ts',
+  'livehere.config.mts',
+  'livehere.config.js',
+  'livehere.config.mjs',
+  'livehere.config.json',
 ] as const;
 
 export interface LoadConfigOptions {
@@ -26,7 +26,7 @@ export interface LoadConfigResult {
 }
 
 /**
- * 加载 livd.config.*：
+ * 加载 livehere.config.*：
  * - 没传 explicit 时在 root 下按 CONFIG_FILES 顺序找第一个存在的
  * - `.json` 走 JSON.parse，其余走动态 import（Node ≥22.18 可直接 import .ts）
  */
@@ -94,7 +94,7 @@ async function importConfig(file: string): Promise<unknown> {
     ) {
       throw new Error(
         `当前 Node（${process.version}）无法直接加载 ${path.basename(file)}，` +
-          '请改用 livd.config.js / .mjs / .json，或升级到 Node ≥ 22.18',
+          '请改用 livehere.config.js / .mjs / .json，或升级到 Node ≥ 22.18',
         { cause: error },
       );
     }

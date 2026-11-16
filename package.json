@@ -1,5 +1,5 @@
 {
-  "name": "@binran/livd",
+  "name": "livehere",
   "version": "0.0.1",
   "description": "A tiny, safe-by-default static file server",
   "keywords": [
@@ -17,20 +17,17 @@
     "url": "https://github.com/bin-ran/livd/issues"
   },
   "license": "MIT",
-  "author": "livd contributors",
+  "author": "livehere contributors",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bin-ran/livd.git"
   },
   "bin": {
-    "livd": "./dist/cli.mjs"
+    "livehere": "./dist/cli.mjs"
   },
   "files": [
     "dist"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "type": "module",
   "sideEffects": false,
   "exports": {

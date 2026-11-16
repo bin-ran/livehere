@@ -1,51 +1,52 @@
-# livd
+# livehere
 
-> 命令行叫 `livd`，npm 包名是 `@binran/livd`（`livd` 这个无作用域名被 npm 的相似名称策略拦下，
+> **Serve your files. They live here.** 一个本地静态文件服务器，默认安全，运行时零依赖。
+> 包名与命令都是 `livehere`（原名 `livd` 因 npm 的相似名称策略无法注册：
 > 它与 `livan` / `lit` / `lib0` / `levn` / `uid` / `ulid` 编辑距离太近）。
 
 [![CI](https://github.com/bin-ran/livd/actions/workflows/ci.yml/badge.svg)](https://github.com/bin-ran/livd/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/@binran/livd.svg)](https://www.npmjs.com/package/@binran/livd)
-[![npm downloads](https://img.shields.io/npm/dm/@binran/livd.svg)](https://www.npmjs.com/package/@binran/livd)
-[![license](https://img.shields.io/npm/l/@binran/livd.svg)](./LICENSE)
-[![node](https://img.shields.io/node/v/@binran/livd.svg)](https://nodejs.org)
+[![npm version](https://img.shields.io/npm/v/livehere.svg)](https://www.npmjs.com/package/livehere)
+[![npm downloads](https://img.shields.io/npm/dm/livehere.svg)](https://www.npmjs.com/package/livehere)
+[![license](https://img.shields.io/npm/l/livehere.svg)](./LICENSE)
+[![node](https://img.shields.io/node/v/livehere.svg)](https://nodejs.org)
 
 Serve a folder over HTTP in one command. **Safe by default**: binds to loopback, refuses dotfiles and
 path traversal, and never crashes on a busy port.
 
 ```sh
-npx @binran/livd                                # 当前目录，http://127.0.0.1:8000
-npx @binran/livd ./dist                         # 指定目录
-npx @binran/livd ./dist -p 3000 -f index.html   # 端口 + SPA fallback
-npx @binran/livd ./dist -p auto --host 0.0.0.0  # 端口自动顺延 + 暴露到局域网
-npx @binran/livd ./dist -w                      # 保存文件后浏览器自动刷新
-npx @binran/livd ./dist -x http://localhost:7000/api   # 把 /api 反代到后端
+npx livehere                                # 当前目录，http://127.0.0.1:8000
+npx livehere ./dist                         # 指定目录
+npx livehere ./dist -p 3000 -f index.html   # 端口 + SPA fallback
+npx livehere ./dist -p auto --host 0.0.0.0  # 端口自动顺延 + 暴露到局域网
+npx livehere ./dist -w                      # 保存文件后浏览器自动刷新
+npx livehere ./dist -x http://localhost:7000/api   # 把 /api 反代到后端
 ```
 
-装成全局后命令是 `livd`，下面的示例都按这个写法：
+装成全局后命令是 `livehere`，下面的示例都按这个写法：
 
 ```sh
-npm i -g @binran/livd
-livd ./dist -p 3000 -w
+npm i -g livehere
+livehere ./dist -p 3000 -w
 ```
 
-> livd 是一个轻量静态文件服务器。与 `serve` / `http-server` 相比，它的重点是**默认安全**与**可扩展的中间件内核**；
+> livehere 是一个轻量静态文件服务器。与 `serve` / `http-server` 相比，它的重点是**默认安全**与**可扩展的中间件内核**；
 > 与 `anywhere` 相比，它不再默认暴露到局域网、没有内置过期证书、端口占用不会崩。
 
 ## 安装
 
 ```sh
-npm i -g @binran/livd        # 全局命令（或 pnpm add -g @binran/livd）
-npx @binran/livd             # 不安装直接用（或 pnpm dlx @binran/livd）
+npm i -g livehere        # 全局命令（或 pnpm add -g livehere）
+npx livehere             # 不安装直接用（或 pnpm dlx livehere）
 ```
 
-装好后命令行是 `livd`（`bin` 名与包名的作用域部分无关）。
+装好后命令行就是 `livehere`，与包名一致（`npx livehere` 与全局安装后的命令相同）。
 
-要求 Node.js >= **22.18**。运行时零依赖，装完 `node_modules` 里只有 `livd` 一个包。
+要求 Node.js >= **22.18**。运行时零依赖，装完 `node_modules` 里只有 `livehere` 一个包。
 
 ## 命令行
 
 ```
-livd [ROOT] [OPTIONS]
+livehere [ROOT] [OPTIONS]
 
   -d, --dir=<dir>         同 ROOT
   -p, --port=<port>       端口，默认 8000；填 auto 时自动顺延
@@ -57,7 +58,7 @@ livd [ROOT] [OPTIONS]
   -w, --watch             监听文件变化并自动刷新（live reload）
       --poll              轮询监听（Docker / WSL / 网络盘）
   -x, --proxy=<url|file>  反向代理：shorthand URL、配置文件或 webpack.config.js
-      --config=<file>     配置文件路径（默认在 ROOT 下自动查找 livd.config.*）
+      --config=<file>     配置文件路径（默认在 ROOT 下自动查找 livehere.config.*）
       --cors[=<origin>]   开启 CORS，留空即 *
       --https             额外开启 HTTPS（自签证书，默认端口 = HTTP + 1）
       --https-port=<port> HTTPS 端口
@@ -69,26 +70,26 @@ livd [ROOT] [OPTIONS]
 例子：
 
 ```sh
-livd                                  # 当前目录，http://127.0.0.1:8000/
-livd ./dist -p 3000                   # 指定目录与端口
-livd -p auto                          # 8000 被占用就顺延到 8001
-livd --host 0.0.0.0                   # 显式暴露到局域网
-livd --cors=https://app.dev           # 只允许指定 origin
-livd -f index.html                    # SPA history 模式
-livd --https --cert ./c.pem --key ./k.pem
-livd -w --poll                        # 容器里监听宿主机挂载目录
-livd -x http://localhost:7000/api     # /api/* → http://localhost:7000/api/*
-livd -x webpack.config.js             # 直接复用 devServer.proxy
-livd -x proxy.config.js               # 自己的配置文件
+livehere                                  # 当前目录，http://127.0.0.1:8000/
+livehere ./dist -p 3000                   # 指定目录与端口
+livehere -p auto                          # 8000 被占用就顺延到 8001
+livehere --host 0.0.0.0                   # 显式暴露到局域网
+livehere --cors=https://app.dev           # 只允许指定 origin
+livehere -f index.html                    # SPA history 模式
+livehere --https --cert ./c.pem --key ./k.pem
+livehere -w --poll                        # 容器里监听宿主机挂载目录
+livehere -x http://localhost:7000/api     # /api/* → http://localhost:7000/api/*
+livehere -x webpack.config.js             # 直接复用 devServer.proxy
+livehere -x proxy.config.js               # 自己的配置文件
 ```
 
 ## 配置文件
 
-服务目录下放 `livd.config.ts`（或 `.js` / `.mjs` / `.json`）即可自动生效：
+服务目录下放 `livehere.config.ts`（或 `.js` / `.mjs` / `.json`）即可自动生效：
 
 ```ts
-// livd.config.ts
-import { defineConfig } from 'livd';
+// livehere.config.ts
+import { defineConfig } from 'livehere';
 
 export default defineConfig({
   port: 3000,
@@ -98,8 +99,8 @@ export default defineConfig({
 });
 ```
 
-- 查找顺序：`livd.config.ts` → `.mts` → `.js` → `.mjs` → `.json`
-- 显式指定：`livd --config ./config/livd.mjs`
+- 查找顺序：`livehere.config.ts` → `.mts` → `.js` → `.mjs` → `.json`
+- 显式指定：`livehere --config ./config/livehere.mjs`
 - **优先级：命令行 > 配置文件 > 默认值**（例如配置里 `listing: false`，命令行加 `--listing` 依然生效）
 - `.ts` 用 Node ≥ 22.18 的原生类型擦除加载；更早的版本会给出可读提示，改用 `.js` / `.mjs` / `.json` 即可
 - 配置里也可以写 `plugins`（例如 `livePlugin()` / `proxyPlugin()`），CLI 传入的插件排在其后
@@ -148,7 +149,7 @@ export default defineConfig({
 | 配置文件      | `-x webpack.config.js`                       | 自动从 `devServer.proxy` 或 `proxy` 读取，兼容 webpack-dev-server |
 | 配置对象      | `{ '/api': { target, stripContext: true } }` | 见下表                                                            |
 
-配置文件路径相对**当前工作目录**解析（`livd ./dist -x webpack.config.js` 能直接找到仓库根的配置），
+配置文件路径相对**当前工作目录**解析（`livehere ./dist -x webpack.config.js` 能直接找到仓库根的配置），
 在当前目录找不到时才回落到 ROOT。
 
 每个 context 支持：
@@ -159,7 +160,7 @@ export default defineConfig({
   changeOrigin: true,               // 默认 true：把 Host 改写为上游 host
   secure: true,                     // 上游自签证书时可设 false
   ws: true,                         // 默认 true：透传 WebSocket upgrade
-  headers: { 'X-From': 'livd' },
+  headers: { 'X-From': 'livehere' },
   stripContext: true,               // /api/users → /users
   pathRewrite: { '^/api': '/v2' },  // webpack 风格正则改写
   rewrite: (p) => p.replace('/api', ''),  // 函数式，优先级最高
@@ -183,7 +184,7 @@ chokidar(忽略 node_modules/.git/点文件) → 60ms 去抖 → SSE 广播
 ## 编程 API
 
 ```ts
-import { createServer } from 'livd';
+import { createServer } from 'livehere';
 
 const server = await createServer({
   root: './dist',
@@ -199,8 +200,8 @@ await server.close();
 ### live reload（编程方式）
 
 ```ts
-import { createServer } from 'livd';
-import { livePlugin } from 'livd/live';
+import { createServer } from 'livehere';
+import { livePlugin } from 'livehere/live';
 
 const server = await createServer({
   root: './dist',
@@ -211,8 +212,8 @@ const server = await createServer({
 ### 反向代理（编程方式）
 
 ```ts
-import { createServer } from 'livd';
-import { proxyPlugin } from 'livd/proxy';
+import { createServer } from 'livehere';
+import { proxyPlugin } from 'livehere/proxy';
 
 const server = await createServer({
   root: './dist',
@@ -227,7 +228,7 @@ const server = await createServer({
 ### 插件
 
 ```ts
-import type { Plugin } from 'livd';
+import type { Plugin } from 'livehere';
 
 export const jsonHeader: Plugin = {
   name: 'json-header',
@@ -235,7 +236,7 @@ export const jsonHeader: Plugin = {
   configureServer(ctx) {
     ctx.use(({ req, res }) => {
       if (!(req.url ?? '').endsWith('.json')) return false;
-      res.setHeader('X-Livd', '1');
+      res.setHeader('X-Livehere', '1');
       return false;
     }, 'post');
   },
@@ -286,14 +287,13 @@ tag 推上去后，CI 用 **npm Trusted Publishing（OIDC）** 发布，不需�
    npm login
    npm publish
    ```
-   `package.json` 里已有 `publishConfig.access: "public"`，scoped 包不用每次带 `--access`。
-   `pnpm verify:meta` 会检查这条是否存在（漏了会发成私有包）。
+   无作用域包默认就是公开的，不需要 `--access`。
 3. npm 后台 **Settings → Trusted publishing → Add trusted publisher**，选 GitHub Actions：
 
    | 字段                 | 值                                                                                             |
    | -------------------- | ---------------------------------------------------------------------------------------------- |
    | Organization or user | `bin-ran`                                                                                      |
-   | Repository           | `livd`                                                                                         |
+   | Repository           | `livehere`                                                                                         |
    | Workflow filename    | `release.yml`（只写文件名，带 `.yml`，且必须真实存在于 `.github/workflows/`）                  |
    | Environment name     | 留空（除非用了 GitHub Environments）                                                           |
    | Allowed actions      | **勾上允许 `npm publish`**（默认只允许 `npm stage publish`，我们的工作流用的是 `npm publish`） |
@@ -322,7 +322,7 @@ npm publish --dry-run  # 完整走一遍发布流程，但不真的上传
 - [x] M1 静态服务 / 目录列表 / fallback / CORS / HTTPS / 端口顺延
 - [x] M2 `--watch`（chokidar + SSE + CSS 原地替换）
 - [x] M2 `--proxy`（httpxy + rewrite + ws 透传 + webpack 配置兼容）
-- [x] `livd.config.ts` 配置文件（CLI > 配置 > 默认值）
+- [x] `livehere.config.ts` 配置文件（CLI > 配置 > 默认值）
 - [ ] M3 后续：单二进制发行（Node SEA）
 
 ## License

@@ -57,13 +57,13 @@ function waitFor(pattern, stream, timeoutMs = 15_000) {
   });
 }
 
-const root = await mkdtemp(path.join(os.tmpdir(), 'livd-smoke-'));
+const root = await mkdtemp(path.join(os.tmpdir(), 'livehere-smoke-'));
 await mkdir(path.join(root, 'sub'));
 await writeFile(path.join(root, 'a.txt'), 'hello smoke');
 await writeFile(path.join(root, 'sub', 'b.txt'), 'nested');
 await writeFile(path.join(root, 'custom.config.json'), '{ "port": 0, "listing": true }\n');
 await writeFile(
-  path.join(root, 'livd.config.mjs'),
+  path.join(root, 'livehere.config.mjs'),
   'export default { port: 0, listing: false, cors: true };\n',
 );
 
@@ -128,7 +128,7 @@ try {
   for (const file of [
     'a.txt',
     path.join('sub', 'b.txt'),
-    'livd.config.mjs',
+    'livehere.config.mjs',
     'custom.config.json',
   ]) {
     await rm(path.join(root, file), { force: true });

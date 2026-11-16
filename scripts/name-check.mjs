@@ -113,7 +113,7 @@ function verdict({ state, neighborCount, homoglyphHits, length }) {
   if (length <= 5) return '高风险（短名邻居密度必然高）';
   if (neighborCount === 0) return '低风险（可发）';
   if (neighborCount <= 2) return '中低风险（大概率可发）';
-  if (neighborCount <= 6) return '中风险（参考 livd：6 个邻居被拒）';
+  if (neighborCount <= 6) return '中风险（参考 livehere：6 个邻居被拒）';
   return '高风险（邻居过多，大概率被拒）';
 }
 

@@ -62,7 +62,7 @@ async function waitFor(check: () => boolean, timeoutMs = 5000): Promise<void> {
 }
 
 beforeAll(async () => {
-  root = await mkdtemp(path.join(os.tmpdir(), 'livd-live-'));
+  root = await mkdtemp(path.join(os.tmpdir(), 'livehere-live-'));
   await mkdir(path.join(root, 'assets'));
   await writeFile(
     path.join(root, 'index.html'),
@@ -88,18 +88,18 @@ afterAll(async () => {
 
 describe('live reload 端点', () => {
   it('提供客户端脚本', async () => {
-    const response = await fetch(`${base}_livd/live.js`);
+    const response = await fetch(`${base}_livehere/live.js`);
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('javascript');
     const script = await response.text();
     expect(script).toContain('EventSource');
-    expect(script).toContain('"/_livd"');
+    expect(script).toContain('"/_livehere"');
     expect(script).toContain("'/live'");
   });
 
   it('SSE 连接保持打开并先发一条注释', async () => {
-    const session = openSse(`${base}_livd/live`);
+    const session = openSse(`${base}_livehere/live`);
     try {
       await delay(200);
       expect(session.events).toHaveLength(0);
@@ -115,8 +115,10 @@ describe('HTML 注入', () => {
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(html).toContain('<script src="/_livd/live.js" defer></script>');
-    expect(html.indexOf('_livd/live.js')).toBeLessThan(html.toLowerCase().lastIndexOf('</body>'));
+    expect(html).toContain('<script src="/_livehere/live.js" defer></script>');
+    expect(html.indexOf('_livehere/live.js')).toBeLessThan(
+      html.toLowerCase().lastIndexOf('</body>'),
+    );
     expect(response.headers.get('content-length')).toBe(String(Buffer.byteLength(html)));
     expect(response.headers.get('etag')).toBeNull();
     expect(response.headers.get('cache-control')).toBe('no-store');
@@ -127,7 +129,7 @@ describe('HTML 注入', () => {
     const body = await response.text();
 
     expect(body).toBe('plain text');
-    expect(body).not.toContain('_livd/live.js');
+    expect(body).not.toContain('_livehere/live.js');
   });
 
   it('HEAD 请求不注入 body', async () => {
@@ -143,7 +145,7 @@ describe('HTML 注入', () => {
 
 describe('文件变化 → 事件', () => {
   it('只有 CSS 变更时发 css 事件', async () => {
-    const session = openSse(`${base}_livd/live`);
+    const session = openSse(`${base}_livehere/live`);
     try {
       await delay(200);
       await writeFile(path.join(root, 'assets', 'style.css'), 'body{color:blue}');
@@ -157,7 +159,7 @@ describe('文件变化 → 事件', () => {
   });
 
   it('HTML 变更发 reload 事件', async () => {
-    const session = openSse(`${base}_livd/live`);
+    const session = openSse(`${base}_livehere/live`);
     try {
       await delay(200);
       await writeFile(
@@ -177,7 +179,7 @@ describe('文件变化 → 事件', () => {
     await mkdir(path.join(root, 'node_modules'));
     await writeFile(path.join(root, 'node_modules', 'noise.js'), 'noise');
 
-    const session = openSse(`${base}_livd/live`);
+    const session = openSse(`${base}_livehere/live`);
     try {
       await delay(200);
       await writeFile(path.join(root, 'node_modules', 'noise.js'), 'noise2');

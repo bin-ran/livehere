@@ -31,7 +31,14 @@ expect(
 expect(!PLACEHOLDER.test(homepage), `homepage 仍是占位符：${homepage}`);
 expect(!PLACEHOLDER.test(bugs), `bugs.url 仍是占位符：${bugs}`);
 expect(Boolean(pkg.license), 'package.json 缺少 license');
-expect(Boolean(pkg.bin?.livd), 'package.json 缺少 bin.livd');
+expect(
+  Object.keys(pkg.bin ?? {}).length === 1,
+  'package.json 应当恰好声明一个 bin（命令名与包名保持一致，npx 才不会困惑）',
+);
+expect(
+  Object.keys(pkg.bin ?? {})[0] === pkg.name,
+  `bin 名应与包名一致：包名 ${pkg.name}，bin ${Object.keys(pkg.bin ?? {}).join(', ')}`,
+);
 expect(Boolean(pkg.exports?.['.']?.types), 'exports["."] 缺少 types');
 // scoped 包默认是私有发布，漏了 publishConfig.access 会导致 CI 发布失败
 if (pkg.name.startsWith('@')) {

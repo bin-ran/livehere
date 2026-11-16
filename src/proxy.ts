@@ -54,7 +54,7 @@ export function proxyPlugin(options: ProxyPluginOptions): Plugin {
   const warned = new Set<string>();
 
   return {
-    name: 'livd:proxy',
+    name: 'livehere:proxy',
 
     async configureServer(context) {
       const contexts = await resolveContexts(options.config, context.root);
@@ -144,7 +144,7 @@ function createHandler(entry: ProxyEntry, warned: Set<string>): Handler {
     } catch {
       if (!warned.has(entry.target)) {
         warned.add(entry.target);
-        process.stderr.write(`[livd] 上游不可达：${entry.target}\n`);
+        process.stderr.write(`[livehere] 上游不可达：${entry.target}\n`);
       }
       if (!ctx.res.headersSent) {
         sendStatus(ctx.res, 502, `Bad Gateway: ${entry.target} 不可达`);
@@ -218,7 +218,7 @@ async function resolveContexts(
 }
 
 /**
- * 配置文件相对「当前工作目录」解析（CLI 里最符合直觉：`livd ./dist -x webpack.config.js`），
+ * 配置文件相对「当前工作目录」解析（CLI 里最符合直觉：`livehere ./dist -x webpack.config.js`），
  * 找不到再回落到 ROOT，兼容把配置和服务目录放在一起的用法。
  */
 async function resolveConfigPath(input: string, root: string): Promise<string> {

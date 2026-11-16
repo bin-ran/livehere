@@ -18,7 +18,7 @@ let upstreamOrigin = '';
 const upstreamSockets = new Set<net.Socket>();
 
 beforeAll(async () => {
-  root = await mkdtemp(path.join(os.tmpdir(), 'livd-proxy-'));
+  root = await mkdtemp(path.join(os.tmpdir(), 'livehere-proxy-'));
   await writeFile(path.join(root, 'hello.txt'), 'hello from static');
   await writeFile(
     path.join(root, 'webpack.config.js'),
@@ -169,7 +169,7 @@ describe('proxy 配置文件', () => {
   });
 
   it('配置文件相对当前工作目录解析（不在 ROOT 内也能找到）', async () => {
-    const configDir = await mkdtemp(path.join(os.tmpdir(), 'livd-proxy-cwd-'));
+    const configDir = await mkdtemp(path.join(os.tmpdir(), 'livehere-proxy-cwd-'));
     const configPath = path.join(configDir, 'proxy.cwd.json');
     await writeFile(
       configPath,

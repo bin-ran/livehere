@@ -6,6 +6,9 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createServer, type ServerHandle } from '../../src/server';
 import type { Handler } from '../../src/types';
 
+/** 夹具内容：断言从它派生，改名不会再把测试改坏 */
+const HELLO = 'hello from livehere';
+
 let root = '';
 let handle: ServerHandle;
 let base = '';
@@ -31,10 +34,10 @@ function rawGet(pathname: string): Promise<{ status: number; body: string }> {
 }
 
 beforeAll(async () => {
-  root = await mkdtemp(path.join(os.tmpdir(), 'livd-e2e-'));
+  root = await mkdtemp(path.join(os.tmpdir(), 'livehere-e2e-'));
   await mkdir(path.join(root, 'public'));
   await mkdir(path.join(root, 'app'));
-  await writeFile(path.join(root, 'hello.txt'), 'hello livd');
+  await writeFile(path.join(root, 'hello.txt'), HELLO);
   await writeFile(path.join(root, 'public', 'index.html'), '<h1>public index</h1>');
   await writeFile(path.join(root, 'app', 'a.txt'), 'a');
   await writeFile(path.join(root, '.env'), 'SECRET=1');
@@ -58,7 +61,7 @@ describe('静态文件', () => {
     const response = await fetch(`${base}hello.txt`);
 
     expect(response.status).toBe(200);
-    expect(await response.text()).toBe('hello livd');
+    expect(await response.text()).toBe(HELLO);
     expect(response.headers.get('content-type')).toContain('text/plain');
   });
 
@@ -73,7 +76,7 @@ describe('静态文件', () => {
     const response = await fetch(`${base}hello.txt`, { method: 'HEAD' });
 
     expect(response.status).toBe(200);
-    expect(response.headers.get('content-length')).toBe('10');
+    expect(response.headers.get('content-length')).toBe(String(Buffer.byteLength(HELLO)));
     expect(await response.text()).toBe('');
   });
 

@@ -8,7 +8,7 @@ import type { Plugin } from '../../src/plugin';
 let workspace = '';
 
 beforeAll(async () => {
-  workspace = await mkdtemp(path.join(os.tmpdir(), 'livd-options-'));
+  workspace = await mkdtemp(path.join(os.tmpdir(), 'livehere-options-'));
   await mkdir(path.join(workspace, 'site'));
   await writeFile(path.join(workspace, 'file.txt'), 'x');
 });

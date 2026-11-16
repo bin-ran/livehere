@@ -68,7 +68,7 @@ export async function createServer(input: ServeOptions = {}): Promise<ServerHand
         return;
       }
       const message = error instanceof Error ? error.message : String(error);
-      process.stderr.write(`[livd] 请求处理失败：${message}\n`);
+      process.stderr.write(`[livehere] 请求处理失败：${message}\n`);
       sendStatus(res, 500);
     });
   };
@@ -77,7 +77,7 @@ export async function createServer(input: ServeOptions = {}): Promise<ServerHand
   const disposeHttpUpgrade = attachUpgrade(server, upgrades);
   const port = await listenServer(server, config.port, config.host);
   server.on('error', (error: Error) => {
-    process.stderr.write(`[livd] http 服务器错误：${error.message}\n`);
+    process.stderr.write(`[livehere] http 服务器错误：${error.message}\n`);
   });
 
   const httpsServer =
@@ -120,7 +120,7 @@ async function startSecureServer(
   const disposeUpgrade = attachUpgrade(server, upgrades);
   const boundPort = await listenServer(server, port, config.host);
   server.on('error', (error: Error) => {
-    process.stderr.write(`[livd] https 服务器错误：${error.message}\n`);
+    process.stderr.write(`[livehere] https 服务器错误：${error.message}\n`);
   });
 
   const urls = buildUrls(config, boundPort, 'https');

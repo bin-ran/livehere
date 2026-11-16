@@ -10,7 +10,7 @@ import { openBrowser } from './open';
 
 const command = defineCommand({
   meta: {
-    name: 'livd',
+    name: 'livehere',
     version: pkg.version,
     description: '轻量、默认安全的静态文件服务器',
   },
@@ -36,7 +36,7 @@ const command = defineCommand({
     },
     config: {
       type: 'string',
-      description: '配置文件路径（默认在 ROOT 下查找 livd.config.*）',
+      description: '配置文件路径（默认在 ROOT 下查找 livehere.config.*）',
     },
     fallback: {
       type: 'string',
@@ -194,7 +194,7 @@ function printBanner(
   host: string | undefined,
   extras: { watching?: boolean; configFile?: string } = {},
 ): void {
-  const lines = [`${pc.green('livd')} ${pc.dim(`v${pkg.version}`)}`];
+  const lines = [`${pc.green('livehere')} ${pc.dim(`v${pkg.version}`)}`];
   lines.push(`  ${pc.bold('HTTP')}  ${pc.cyan(handle.url)}`);
   for (const url of handle.urls.slice(1)) {
     lines.push(`        ${pc.cyan(url)}`);

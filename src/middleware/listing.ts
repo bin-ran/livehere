@@ -107,7 +107,7 @@ a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
-<h1>${escapeHtml(title)}<small>livd · ${entries.length} 项</small></h1>
+<h1>${escapeHtml(title)}<small>livehere · ${entries.length} 项</small></h1>
 <ul>
 ${parent === undefined ? '' : `<li><a href="${escapeHtml(parent)}">../</a><span class="meta">上级目录</span></li>`}
 ${rows.join('\n')}

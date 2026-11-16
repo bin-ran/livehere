@@ -13,7 +13,7 @@ export interface LiveOptions {
   css?: boolean;
   /** 刷新后恢复滚动位置，默认 true */
   keepScroll?: boolean;
-  /** 端点前缀，默认 '/_livd' */
+  /** 端点前缀，默认 '/_livehere' */
   base?: string;
 }
 
@@ -89,7 +89,7 @@ export function livePlugin(options: LiveOptions = {}): Plugin {
       Connection: 'keep-alive',
       'X-Accel-Buffering': 'no',
     });
-    res.write(': livd connected\n\n');
+    res.write(': livehere connected\n\n');
     clients.add(res);
 
     const heartbeat = setInterval(() => {
@@ -131,7 +131,7 @@ export function livePlugin(options: LiveOptions = {}): Plugin {
   };
 
   return {
-    name: 'livd:live',
+    name: 'livehere:live',
 
     async configureServer(context) {
       rootDir = context.root;
@@ -169,7 +169,7 @@ export function livePlugin(options: LiveOptions = {}): Plugin {
 }
 
 function normalizeBase(base: string | undefined): string {
-  const value = (base ?? '/_livd').trim();
+  const value = (base ?? '/_livehere').trim();
   const withSlash = value.startsWith('/') ? value : `/${value}`;
   return withSlash.endsWith('/') ? withSlash.slice(0, -1) : withSlash;
 }
@@ -297,14 +297,14 @@ function buildClientScript(config: { base: string; keepScroll: boolean }): strin
   var keepScroll = ${String(config.keepScroll)};
 
   if (keepScroll) {
-    var flag = 'livd:reloading';
+    var flag = 'livehere:reloading';
     if (sessionStorage.getItem(flag) === '1') {
       sessionStorage.removeItem(flag);
-      var top = sessionStorage.getItem('livd:scroll');
+      var top = sessionStorage.getItem('livehere:scroll');
       if (top !== null) window.scrollTo(0, Number(top));
     }
     window.addEventListener('beforeunload', function () {
-      sessionStorage.setItem('livd:scroll', String(window.scrollY));
+      sessionStorage.setItem('livehere:scroll', String(window.scrollY));
     });
   }
 
@@ -319,7 +319,7 @@ function buildClientScript(config: { base: string; keepScroll: boolean }): strin
 
       var next = document.createElement('link');
       next.rel = 'stylesheet';
-      next.href = pathname + '?livd=' + Date.now();
+      next.href = pathname + '?livehere=' + Date.now();
       next.onload = function () {
         link.remove();
       };
@@ -336,7 +336,7 @@ function buildClientScript(config: { base: string; keepScroll: boolean }): strin
     }
   });
   source.addEventListener('reload', function () {
-    if (keepScroll) sessionStorage.setItem('livd:reloading', '1');
+    if (keepScroll) sessionStorage.setItem('livehere:reloading', '1');
     location.reload();
   });
 })();
