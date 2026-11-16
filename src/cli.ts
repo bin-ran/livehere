@@ -38,6 +38,10 @@ const command = defineCommand({
       type: 'string',
       description: '配置文件路径（默认在 ROOT 下查找 livehere.config.*）',
     },
+    local: {
+      type: 'boolean',
+      description: '只监听本机（等价 --host 127.0.0.1）',
+    },
     fallback: {
       type: 'string',
       alias: 'f',
@@ -119,7 +123,7 @@ const command = defineCommand({
         ...omitUndefined({
           root: cliRoot,
           port: parsePortOption(args.port),
-          host: asString(args.host),
+          host: asBoolean(args.local) === true ? '127.0.0.1' : asString(args.host),
           fallback: asString(args.fallback),
           cors: readCors(args.cors),
           listing: asBoolean(args.listing),
@@ -132,10 +136,7 @@ const command = defineCommand({
         plugins,
       });
 
-      printBanner(handle, asString(args.host) ?? config.host, {
-        watching: watch,
-        configFile: file,
-      });
+      printBanner(handle, { watching: watch, configFile: file });
       if (asBoolean(args.silent) !== true) openBrowser(handle.url);
       waitForSignal(handle);
     } catch (error) {
@@ -191,13 +192,12 @@ function parsePort(raw: string): number | 'auto' {
 
 function printBanner(
   handle: ServerHandle,
-  host: string | undefined,
   extras: { watching?: boolean; configFile?: string } = {},
 ): void {
   const lines = [`${pc.green('livehere')} ${pc.dim(`v${pkg.version}`)}`];
-  lines.push(`  ${pc.bold('HTTP')}  ${pc.cyan(handle.url)}`);
+  lines.push(`  ${pc.bold('本机')} ${pc.cyan(handle.url)}`);
   for (const url of handle.urls.slice(1)) {
-    lines.push(`        ${pc.cyan(url)}`);
+    lines.push(`  ${pc.bold('局域网')} ${pc.cyan(url)}`);
   }
   if (handle.httpsUrl !== undefined) {
     lines.push(
@@ -210,8 +210,11 @@ function printBanner(
   if (extras.configFile !== undefined) {
     lines.push(pc.dim(`  config: ${extras.configFile}`));
   }
-  if (host === undefined || host === '127.0.0.1' || host === 'localhost') {
-    lines.push(pc.dim('  仅本机可访问；需要局域网访问请加 --host 0.0.0.0'));
+  const exposed = handle.host === '0.0.0.0' || handle.host === '::' || handle.host === '';
+  if (exposed) {
+    lines.push(pc.dim('  同一局域网内的设备可直接访问；只想本机用请加 --local'));
+  } else {
+    lines.push(pc.dim('  仅本机可访问；要共享到局域网请去掉 --local'));
   }
   process.stdout.write(`${lines.join('\n')}\n`);
 }

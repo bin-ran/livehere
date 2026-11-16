@@ -322,6 +322,28 @@ describe('生命周期', () => {
     }
   });
 
+  it('默认绑定 0.0.0.0，并同时给出本机地址', async () => {
+    const server = await createServer({ root, port: 0 });
+    try {
+      expect(server.host).toBe('0.0.0.0');
+      expect(server.urls[0]).toContain('127.0.0.1');
+      expect(server.url).toBe(server.urls[0]);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('host 指定为本机时只给一个地址', async () => {
+    const server = await createServer({ root, port: 0, host: '127.0.0.1' });
+    try {
+      expect(server.host).toBe('127.0.0.1');
+      expect(server.urls).toHaveLength(1);
+      expect(server.urls[0]).toContain('127.0.0.1');
+    } finally {
+      await server.close();
+    }
+  });
+
   it('port 为 0 时由系统分配实际端口', async () => {
     const server = await createServer({ root, port: 0 });
     try {

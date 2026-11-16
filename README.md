@@ -10,14 +10,15 @@
 [![license](https://img.shields.io/npm/l/livehere.svg)](./LICENSE)
 [![node](https://img.shields.io/node/v/livehere.svg)](https://nodejs.org)
 
-Serve a folder over HTTP in one command. **Safe by default**: binds to loopback, refuses dotfiles and
-path traversal, and never crashes on a busy port.
+Serve a folder over HTTP in one command — to yourself **and** to devices on your LAN.
+Refuses dotfiles and path traversal, never crashes on a busy port.
 
 ```sh
 npx livehere                                # 当前目录，http://127.0.0.1:8000
 npx livehere ./dist                         # 指定目录
 npx livehere ./dist -p 3000 -f index.html   # 端口 + SPA fallback
-npx livehere ./dist -p auto --host 0.0.0.0  # 端口自动顺延 + 暴露到局域网
+npx livehere ./dist -p auto                 # 端口自动顺延（默认已对局域网开放）
+npx livehere ./dist --local                 # 只给本机用
 npx livehere ./dist -w                      # 保存文件后浏览器自动刷新
 npx livehere ./dist -x http://localhost:7000/api   # 把 /api 反代到后端
 ```
@@ -29,8 +30,9 @@ npm i -g livehere
 livehere ./dist -p 3000 -w
 ```
 
-> livehere 是一个轻量静态文件服务器。与 `serve` / `http-server` 相比，它的重点是**默认安全**与**可扩展的中间件内核**；
-> 与 `anywhere` 相比，它不再默认暴露到局域网、没有内置过期证书、端口占用不会崩。
+> livehere 是一个轻量静态文件服务器。与 `serve` / `http-server` 相比，它的重点是**路径安全**与**可扩展的插件内核**；
+> 与 `anywhere` 相比：证书现场生成不会过期、端口占用不会崩、越界与点文件校验更严格。
+> 默认监听 `0.0.0.0`（手机/另一台电脑可直接取文件），只给自己用加 `--local`。
 
 ## 安装
 
@@ -50,7 +52,8 @@ livehere [ROOT] [OPTIONS]
 
   -d, --dir=<dir>         同 ROOT
   -p, --port=<port>       端口，默认 8000；填 auto 时自动顺延
-      --host=<host>       监听地址，默认 127.0.0.1
+      --host=<host>       监听地址，默认 0.0.0.0（局域网可访问）
+      --local             只监听本机（等价 --host 127.0.0.1）
   -f, --fallback=<file>   history fallback 入口（SPA）
   -l, --log               打印访问日志
       --listing           目录列表（默认开启，关闭用 --no-listing）
@@ -73,7 +76,7 @@ livehere [ROOT] [OPTIONS]
 livehere                                  # 当前目录，http://127.0.0.1:8000/
 livehere ./dist -p 3000                   # 指定目录与端口
 livehere -p auto                          # 8000 被占用就顺延到 8001
-livehere --host 0.0.0.0                   # 显式暴露到局域网
+livehere --local                          # 只给本机用（不暴露到局域网）
 livehere --cors=https://app.dev           # 只允许指定 origin
 livehere -f index.html                    # SPA history 模式
 livehere --https --cert ./c.pem --key ./k.pem
@@ -120,6 +123,7 @@ export default defineConfig({
 - **目录列表自研**：零依赖、HTML 转义正确、目录优先排序
 - **HTTPS 证书现场生成**：EC P-256，不落盘、不会过期（内置证书过期是很多老工具的经典事故）
 - **端口占用**：非 `auto` 时给出明确错误；`auto` 时从 8000 顺延最多 20 次，再退回系统分配
+- **监听地址**：默认绑定 `0.0.0.0`，终端分「本机 / 局域网」两栏打印；`--local` 收窄到 `127.0.0.1`
 - **越界防护**：`realpath` 后的 root + 每次请求重新解析路径，覆盖 `%2e%2e`、反斜杠、空字节
 - **live reload 零额外依赖**：`chokidar` 走动态 `import()`（打包成独立 chunk，不带 `-w` 就不会加载），
   浏览器侧用 **SSE** 而不是 WebSocket；只有纯 `.css` 变更时原地替换样式，其它变更整页刷新并恢复滚动位置

@@ -17,9 +17,12 @@ import { formatHostForUrl, isWildcardHost, listDisplayAddresses } from './utils/
 import type { Handler, RequestContext } from './types';
 
 const AUTO_PORT_START = 8000;
+const LOOPBACK_HOST = '127.0.0.1';
 const AUTO_PORT_ATTEMPTS = 20;
 
 export interface ServerHandle {
+  /** 实际监听的地址（默认 0.0.0.0） */
+  readonly host: string;
   /** 实际监听的 http 端口（port 传 0 / 'auto' 时由系统决定） */
   readonly port: number;
   readonly httpsPort: number | undefined;
@@ -94,6 +97,7 @@ export async function createServer(input: ServeOptions = {}): Promise<ServerHand
 
   const urls = buildUrls(config, port, 'http');
   return {
+    host: config.host,
     port,
     httpsPort: httpsServer === undefined ? undefined : resolvePort(httpsServer.server),
     url: urls[0] ?? `http://127.0.0.1:${port}/`,
@@ -233,7 +237,11 @@ function isPortInUse(error: unknown): boolean {
 
 function buildUrls(config: ResolvedOptions, port: number, scheme: 'http' | 'https'): string[] {
   const suffix = port === (scheme === 'http' ? 80 : 443) ? '' : `:${port}`;
-  const hosts = isWildcardHost(config.host) ? listDisplayAddresses() : [config.host];
+  // 绑定 0.0.0.0 时本机地址同样可用，把它排在第一位，方便直接点开
+  const hosts = isWildcardHost(config.host)
+    ? [LOOPBACK_HOST, ...listDisplayAddresses().filter((host) => host !== LOOPBACK_HOST)]
+    : [config.host];
+
   return hosts.map((host) => `${scheme}://${formatHostForUrl(host)}${suffix}/`);
 }
 

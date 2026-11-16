@@ -20,10 +20,10 @@ afterAll(async () => {
 });
 
 describe('resolveOptions 默认值', () => {
-  it('默认只监听本机、开启目录列表、关闭 CORS 与日志', async () => {
+  it('默认监听局域网、开启目录列表、关闭 CORS 与日志', async () => {
     const config = await resolveOptions({ root: path.join(workspace, 'site') });
 
-    expect(config.host).toBe('127.0.0.1');
+    expect(config.host).toBe('0.0.0.0');
     expect(config.port).toBe(8000);
     expect(config.listing).toBe(true);
     expect(config.cors).toBe(false);

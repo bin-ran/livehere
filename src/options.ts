@@ -8,7 +8,7 @@ export interface ServeOptions {
   root?: string;
   /** 端口；'auto' 表示被占用时自动顺延，0 表示由系统分配 */
   port?: number | 'auto';
-  /** 监听地址，默认 127.0.0.1（不对外暴露） */
+  /** 监听地址，默认 0.0.0.0（局域网可访问）；只给本机用可传 127.0.0.1 */
   host?: string;
   /** history fallback 的入口文件；true 等价于 '/index.html' */
   fallback?: string | boolean;
@@ -43,6 +43,7 @@ export interface ResolvedOptions {
 }
 
 const DEFAULT_PORT = 8000;
+const DEFAULT_HOST = '0.0.0.0';
 export const DEFAULT_INDEX = '/index.html';
 
 function normalizePort(value: number | 'auto' | undefined, label: string): number | 'auto' {
@@ -74,7 +75,7 @@ function normalizeCors(value: string | boolean | undefined): string | false {
 export async function resolveOptions(input: ServeOptions = {}): Promise<ResolvedOptions> {
   const root = await resolveRoot(input.root ?? process.cwd());
   const port = normalizePort(input.port, 'port');
-  const host = input.host?.trim() || '127.0.0.1';
+  const host = input.host?.trim() || DEFAULT_HOST;
 
   const hasCert = input.cert !== undefined;
   const hasKey = input.key !== undefined;
