@@ -33,6 +33,15 @@ expect(!PLACEHOLDER.test(bugs), `bugs.url 仍是占位符：${bugs}`);
 expect(Boolean(pkg.license), 'package.json 缺少 license');
 expect(Boolean(pkg.bin?.livd), 'package.json 缺少 bin.livd');
 expect(Boolean(pkg.exports?.['.']?.types), 'exports["."] 缺少 types');
+// scoped 包默认是私有发布，漏了 publishConfig.access 会导致 CI 发布失败
+if (pkg.name.startsWith('@')) {
+  expect(
+    pkg.publishConfig?.access === 'public',
+    'scoped 包需要 publishConfig.access = "public"，否则发布出来是私有的',
+  );
+  expect(/^@[a-z0-9-]+\/[a-z0-9-]+$/.test(pkg.name), `scoped 包名格式不合法：${pkg.name}`);
+}
+
 expect(
   Object.keys(pkg.dependencies ?? {}).length === 0,
   '运行时依赖应为 0：第三方包需要内联进 dist（见 tsdown.config.ts 的 deps.alwaysBundle）',

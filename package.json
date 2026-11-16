@@ -1,5 +1,5 @@
 {
-  "name": "livd",
+  "name": "@binran/livd",
   "version": "0.0.1",
   "description": "A tiny, safe-by-default static file server",
   "keywords": [
@@ -28,6 +28,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "sideEffects": false,
   "exports": {
