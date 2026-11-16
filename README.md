@@ -4,7 +4,7 @@
 > 包名与命令都是 `livehere`（原名 `livd` 因 npm 的相似名称策略无法注册：
 > 它与 `livan` / `lit` / `lib0` / `levn` / `uid` / `ulid` 编辑距离太近）。
 
-[![CI](https://github.com/bin-ran/livd/actions/workflows/ci.yml/badge.svg)](https://github.com/bin-ran/livd/actions/workflows/ci.yml)
+[![CI](https://github.com/bin-ran/livehere/actions/workflows/ci.yml/badge.svg)](https://github.com/bin-ran/livehere/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/livehere.svg)](https://www.npmjs.com/package/livehere)
 [![npm downloads](https://img.shields.io/npm/dm/livehere.svg)](https://www.npmjs.com/package/livehere)
 [![license](https://img.shields.io/npm/l/livehere.svg)](./LICENSE)
@@ -293,7 +293,7 @@ tag 推上去后，CI 用 **npm Trusted Publishing（OIDC）** 发布，不需�
    | 字段                 | 值                                                                                             |
    | -------------------- | ---------------------------------------------------------------------------------------------- |
    | Organization or user | `bin-ran`                                                                                      |
-   | Repository           | `livehere`                                                                                         |
+   | Repository           | `livehere`                                                                                     |
    | Workflow filename    | `release.yml`（只写文件名，带 `.yml`，且必须真实存在于 `.github/workflows/`）                  |
    | Environment name     | 留空（除非用了 GitHub Environments）                                                           |
    | Allowed actions      | **勾上允许 `npm publish`**（默认只允许 `npm stage publish`，我们的工作流用的是 `npm publish`） |

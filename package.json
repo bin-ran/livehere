@@ -12,15 +12,15 @@
     "static",
     "static-files"
   ],
-  "homepage": "https://github.com/bin-ran/livd#readme",
+  "homepage": "https://github.com/bin-ran/livehere#readme",
   "bugs": {
-    "url": "https://github.com/bin-ran/livd/issues"
+    "url": "https://github.com/bin-ran/livehere/issues"
   },
   "license": "MIT",
   "author": "livehere contributors",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bin-ran/livd.git"
+    "url": "git+https://github.com/bin-ran/livehere.git"
   },
   "bin": {
     "livehere": "./dist/cli.mjs"
