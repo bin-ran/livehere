@@ -24,11 +24,11 @@ npx livd ./dist -x http://localhost:7000/api   # 把 /api 反代到后端
 ## 安装
 
 ```sh
-npm i -g livd      # 全局命令
-npx livd           # 或直接用 npx
+npm i -g livd        # 全局命令（也可以用 pnpm add -g livd）
+npx livd             # 不安装直接用（或 pnpm dlx livd）
 ```
 
-要求 Node.js >= 22.18。
+要求 Node.js >= **22.18**。运行时零依赖，装完 `node_modules` 里只有 `livd` 一个包。
 
 ## 命令行
 
@@ -50,6 +50,8 @@ livd [ROOT] [OPTIONS]
       --https             额外开启 HTTPS（自签证书，默认端口 = HTTP + 1）
       --https-port=<port> HTTPS 端口
       --cert / --key      自定义证书
+  -h, --help              帮助
+  -v, --version           版本号
 ```
 
 例子：
@@ -100,7 +102,7 @@ export default defineConfig({
 ```
 
 - **静态文件用 `sirv`**：带 ETag、`dev` 模式关强缓存、`.br`/`.gz` 走标准 `Accept-Encoding` 协商
-- **目录列表自研**：HTTPS 无依赖、转义正确、目录优先排序
+- **目录列表自研**：零依赖、HTML 转义正确、目录优先排序
 - **HTTPS 证书现场生成**：EC P-256，不落盘、不会过期（内置证书过期是很多老工具的经典事故）
 - **端口占用**：非 `auto` 时给出明确错误；`auto` 时从 8000 顺延最多 20 次，再退回系统分配
 - **越界防护**：`realpath` 后的 root + 每次请求重新解析路径，覆盖 `%2e%2e`、反斜杠、空字节
@@ -113,18 +115,18 @@ export default defineConfig({
 
 | 指标           | 数值            |
 | -------------- | --------------- |
-| npm tarball    | ~180 kB（gzip） |
-| 安装后磁盘占用 | ~950 kB         |
+| npm tarball    | ~185 kB（gzip） |
+| 安装后磁盘占用 | ~1 MB（单个包） |
 | **运行时依赖** | **0 个**        |
 
 `citty`、`sirv`、`picocolors`、`chokidar`、`httpxy`、`selfsigned` 全部内联进产物，并按功能拆成按需加载的 chunk：
 
-| chunk                         | 什么时候加载                |
-| ----------------------------- | --------------------------- |
-| `cli.mjs` + `server-*.mjs`    | 启动即加载                  |
-| `live.mjs` + `chokidar-*.mjs` | 只在 `-w/--watch` 时        |
-| `proxy.mjs`                   | 只在 `-x/--proxy` 时        |
-| `selfsigned-*.mjs`            | 只在 `--https` 且没给证书时 |
+| chunk（未压缩）                                     | 什么时候加载                |
+| --------------------------------------------------- | --------------------------- |
+| `cli.mjs` + `server-*.mjs` + 几个 < 2 kB 共享 chunk | 启动即加载（约 75 kB）      |
+| `live.mjs` + `chokidar-*.mjs`（120 kB）             | 只在 `-w/--watch` 时        |
+| `proxy.mjs`（33 kB）                                | 只在 `-x/--proxy` 时        |
+| `selfsigned-*.mjs`（691 kB）                        | 只在 `--https` 且没给证书时 |
 
 ## 反向代理的三种写法
 
@@ -133,6 +135,9 @@ export default defineConfig({
 | shorthand URL | `-x http://localhost:7000/api`               | 保留前缀：`/api/users` → `/api/users`                             |
 | 配置文件      | `-x webpack.config.js`                       | 自动从 `devServer.proxy` 或 `proxy` 读取，兼容 webpack-dev-server |
 | 配置对象      | `{ '/api': { target, stripContext: true } }` | 见下表                                                            |
+
+配置文件路径相对**当前工作目录**解析（`livd ./dist -x webpack.config.js` 能直接找到仓库根的配置），
+在当前目录找不到时才回落到 ROOT。
 
 每个 context 支持：
 
@@ -235,6 +240,9 @@ pnpm test                        # vitest
 pnpm check                       # typecheck + lint + test
 pnpm build                       # tsdown 打包
 pnpm smoke                       # 用 dist 真实产物起服务做冒烟测试
+pnpm verify:meta                 # 发布元数据自检（仓库字段 / 零依赖 / workflow 权限）
+pnpm pack:check                  # 看一眼 npm 包里到底有什么
+pnpm release                     # 本地 bump 版本 + commit + tag（不 push）
 ```
 
 CI 用 `pnpm install --frozen-lockfile`，锁文件与 `package.json` 不一致时会直接失败；
@@ -244,7 +252,7 @@ CI 用 `pnpm install --frozen-lockfile`，锁文件与 `package.json` 不一致�
 
 ```sh
 # 1) 选版本号 → 更新 package.json + 本地 commit + tag（不 push）
-npm run release
+pnpm release
 
 # 2) 你自己把 tag 推上去（会触发 .github/workflows/release.yml）
 git push --follow-tags
@@ -286,12 +294,13 @@ tag 推上去后，CI 用 **npm Trusted Publishing（OIDC）** 发布，不需�
 发布前可以本地先看一眼产物：
 
 ```sh
-npm run smoke          # 用 dist 真实产物起服务，验证配置/静态/CORS/越界拦截
-npm run pack:check     # npm pack --dry-run
+pnpm smoke             # 用 dist 真实产物起服务，验证配置/静态/CORS/越界拦截
+pnpm pack:check        # npm pack --dry-run
 npm publish --dry-run  # 完整走一遍发布流程，但不真的上传
 ```
 
-`prepublishOnly` 会自动串起 `check → build → smoke`，CI 里也是同样顺序。
+`prepublishOnly` 会自动串起 `verify:meta → check → build → smoke`，
+其中 `verify:meta` 会拦住占位符仓库字段、零依赖被打破、workflow 缺 `id-token: write` 这类「发出去就修不回来」的问题。
 
 ## Roadmap
 
