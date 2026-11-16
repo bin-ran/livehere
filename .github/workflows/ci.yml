@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22.x, 24.x, 26.x]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npx oxfmt --check src test scripts
+
+      - name: Test
+        run: npm test
+
+      - name: Build (含 publint / attw 校验)
+        run: npm run build
+
+      - name: Smoke test (真实产物)
+        run: npm run smoke

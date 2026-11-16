@@ -1,0 +1,82 @@
+{
+  "name": "livd",
+  "version": "0.1.0",
+  "description": "A tiny, safe-by-default static file server",
+  "type": "module",
+  "bin": {
+    "livd": "./dist/cli.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./live": {
+      "types": "./dist/live.d.mts",
+      "import": "./dist/live.mjs"
+    },
+    "./proxy": {
+      "types": "./dist/proxy.d.mts",
+      "import": "./dist/proxy.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "sideEffects": false,
+  "keywords": [
+    "static",
+    "server",
+    "serve",
+    "static-files",
+    "live-reload",
+    "proxy",
+    "dev-server",
+    "cli"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint src test scripts",
+    "fmt": "oxfmt src test scripts",
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "prepublishOnly": "npm run check && npm run build && npm run smoke",
+    "pack:check": "npm pack --dry-run",
+    "release": "bumpp --no-push",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@types/node": "^24.0.0",
+    "bumpp": "^12.3.0",
+    "chokidar": "^6.0.0",
+    "citty": "^0.2.2",
+    "httpxy": "^0.5.6",
+    "oxfmt": "^0.78.0",
+    "oxlint": "^1.93.0",
+    "picocolors": "^1.1.1",
+    "publint": "^0.3.25",
+    "sirv": "^3.0.2",
+    "tsdown": "^0.23.7",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0",
+    "selfsigned": "^5.5.0"
+  },
+  "license": "MIT",
+  "author": "livd contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/<you>/livd.git"
+  },
+  "homepage": "https://github.com/<you>/livd#readme",
+  "bugs": {
+    "url": "https://github.com/<you>/livd/issues"
+  }
+}
