@@ -48,7 +48,7 @@ async function buildHandler(
     createCors(config.cors),
     guard,
     // 目录索引要在 fallback 之前：/sub/ → /sub/index.html，避免被 SPA 兜底抢走
-    createIndexFile(),
+    createIndexFile(config.index),
   ];
 
   if (config.fallback !== false) {

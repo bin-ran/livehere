@@ -138,6 +138,61 @@ describe('目录索引', () => {
     expect(response.headers.get('location')).toBe('/site/?x=1&y=2');
   });
 
+  it('index: false 时不再自动打开 index.html，改为显示列表', async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'livehere-noindex-'));
+    await writeFile(path.join(dir, 'index.html'), '<h1>should not show</h1>');
+    await writeFile(path.join(dir, 'note.txt'), 'note');
+    const server = await createServer({ root: dir, port: 0, index: false });
+
+    try {
+      const response = await fetch(server.url);
+      const html = await response.text();
+      expect(response.status).toBe(200);
+      expect(html).toContain('note.txt');
+      expect(html).not.toContain('should not show');
+    } finally {
+      await server.close();
+      await rm(path.join(dir, 'index.html'), { force: true });
+      await rm(path.join(dir, 'note.txt'), { force: true });
+      await rmdir(dir);
+    }
+  });
+
+  it('可以自定义入口文件名', async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'livehere-homeindex-'));
+    await writeFile(path.join(dir, 'home.html'), '<h1>home entry</h1>');
+    const server = await createServer({ root: dir, port: 0, index: 'home.html' });
+
+    try {
+      const response = await fetch(server.url);
+      expect(await response.text()).toBe('<h1>home entry</h1>');
+    } finally {
+      await server.close();
+      await rm(path.join(dir, 'home.html'), { force: true });
+      await rmdir(dir);
+    }
+  });
+
+  it('?list 可以绕过入口文件看目录', async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'livehere-list-'));
+    await writeFile(path.join(dir, 'index.html'), '<h1>entry</h1>');
+    await writeFile(path.join(dir, 'note.txt'), 'note');
+    const server = await createServer({ root: dir, port: 0 });
+
+    try {
+      expect(await (await fetch(server.url)).text()).toBe('<h1>entry</h1>');
+
+      const listed = await (await fetch(`${server.url}?list`)).text();
+      expect(listed).toContain('note.txt');
+      expect(listed).not.toContain('<h1>entry</h1>');
+    } finally {
+      await server.close();
+      await rm(path.join(dir, 'index.html'), { force: true });
+      await rm(path.join(dir, 'note.txt'), { force: true });
+      await rmdir(dir);
+    }
+  });
+
   it('根目录有 index.html 时直接返回它，而不是目录列表', async () => {
     const dir = await mkdtemp(path.join(os.tmpdir(), 'livehere-index-'));
     await writeFile(path.join(dir, 'index.html'), '<h1>hello index</h1>');

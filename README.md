@@ -57,6 +57,8 @@ livehere [ROOT] [OPTIONS]
   -f, --fallback=<file>   history fallback 入口（SPA）
   -l, --log               打印访问日志
       --listing           目录列表（默认开启，关闭用 --no-listing）
+      --browse            目录请求一律显示列表，不自动打开入口文件
+      --index=<file>      目录入口文件名（默认 index.html；填 none 等同 --browse）
   -s, --silent            不自动打开浏览器
   -w, --watch             监听文件变化并自动刷新（live reload）
       --poll              轮询监听（Docker / WSL / 网络盘）
@@ -77,6 +79,8 @@ livehere                                  # 当前目录，http://127.0.0.1:8000
 livehere ./dist -p 3000                   # 指定目录与端口
 livehere -p auto                          # 8000 被占用就顺延到 8001
 livehere --local                          # 只给本机用（不暴露到局域网）
+livehere --browse                         # 有 index.html 也先看目录列表
+livehere --index home.html                # 换一个入口文件
 livehere --cors=https://app.dev           # 只允许指定 origin
 livehere -f index.html                    # SPA history 模式
 livehere --https --cert ./c.pem --key ./k.pem
@@ -121,8 +125,10 @@ export default defineConfig({
 ```
 
 - **静态文件用 `sirv`**：带 ETag、`dev` 模式关强缓存、`.br`/`.gz` 走标准 `Accept-Encoding` 协商
-- **目录索引**：`/sub/` 有 `index.html` 就直出它；`/sub` 是目录但缺尾斜杠时 301 到 `/sub/`
+- **目录索引**：`/sub/` 有入口文件（默认 `index.html`）就直出它；`/sub` 是目录但缺尾斜杠时 301 到 `/sub/`
   （不猜扩展名，`/about` 不会变成 `about.html`）
+- **想看目录但对入口文件又不想关掉**：任意目录请求加 `?list` 即可临时看列表（`/?list`）；
+  想长期关掉就用 `--browse`（或配置里的 `index: false`）
 - **预览 vs 下载**：`.conf` / `.ini` / `.env` / `.log` / 脚本类等「不该在浏览器里看」的扩展名强制
   `Content-Disposition: attachment`；未知扩展名按 `application/octet-stream` 下载，不留给浏览器嗅探
   （并统一加 `X-Content-Type-Options: nosniff`）。目录列表里每个文件另有 `↓` 下载入口

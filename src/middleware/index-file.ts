@@ -2,17 +2,16 @@ import fs from 'node:fs/promises';
 import type { Req, Handler } from '../types';
 import { pathnameOf, resolveWithinRoot } from '../utils/path';
 
-const INDEX_FILE = 'index.html';
-
 /**
  * 目录索引与尾斜杠规范化。
  *
  * 静态中间件刻意关掉了「猜扩展名」（`/about` → `about.html`），副作用是目录索引也失效了，
- * 所以这里补回来，且只做两件标准行为：
- * - `/sub/` 目录下有 index.html → 内部改写成 `/sub/index.html`，交给静态中间件
+ * 所以这里补回来，只做两件标准行为：
+ * - `/sub/` 目录下有入口文件（默认 index.html）→ 内部改写交给静态中间件；
+ *   传 `index: false` 或请求带 `?list` 时跳过，直接走目录列表
  * - `/sub` 是目录但缺尾斜杠 → 301 到 `/sub/`，否则页面里的相对路径会指错
  */
-export function createIndexFile(): Handler {
+export function createIndexFile(index: string | false): Handler {
   return async (ctx) => {
     const method = ctx.req.method ?? 'GET';
     if (method !== 'GET' && method !== 'HEAD') return false;
@@ -28,9 +27,11 @@ export function createIndexFile(): Handler {
     const search = searchOf(ctx.req);
 
     if (pathname.endsWith('/')) {
-      const candidate = resolveWithinRoot(ctx.root, `${pathname}${INDEX_FILE}`);
+      if (index === false || wantsListing(search)) return false;
+
+      const candidate = resolveWithinRoot(ctx.root, `${pathname}${index}`);
       if (candidate !== undefined && (await isFile(candidate))) {
-        ctx.req.url = `${pathname}${INDEX_FILE}${search}`;
+        ctx.req.url = `${pathname}${index}${search}`;
       }
       return false;
     }
@@ -38,10 +39,18 @@ export function createIndexFile(): Handler {
     const target = resolveWithinRoot(ctx.root, pathname);
     if (target === undefined || !(await isDirectory(target))) return false;
 
-    ctx.res.writeHead(301, { Location: `${encodeURI(pathname)}/${search}` });
+    ctx.res.writeHead(301, {
+      Location: `${encodeURI(pathname)}/${wantsListing(search) ? '?list' : search}`,
+    });
     ctx.res.end();
     return true;
   };
+}
+
+/** `?list` 是一次性的「看目录」逃生口：入口文件不会把列表页永久挡住 */
+function wantsListing(search: string): boolean {
+  if (search === '') return false;
+  return new URLSearchParams(search).has('list');
 }
 
 function searchOf(req: Req): string {

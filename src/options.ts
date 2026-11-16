@@ -16,6 +16,11 @@ export interface ServeOptions {
   cors?: boolean | string;
   /** 目录列表，默认 true */
   listing?: boolean;
+  /**
+   * 目录入口文件：默认 'index.html'；传 false 时目录请求一律显示列表，
+   * 也可以改成别的文件名（如 'home.html'）
+   */
+  index?: string | boolean;
   /** 访问日志，默认 false */
   log?: boolean;
   /** 是否启用 https，默认 false（给了 cert/key 也视为启用） */
@@ -34,6 +39,7 @@ export interface ResolvedOptions {
   readonly fallback: string | false;
   readonly cors: string | false;
   readonly listing: boolean;
+  readonly index: string | false;
   readonly log: boolean;
   readonly https: boolean;
   readonly httpsPort: number | 'auto' | false;
@@ -62,6 +68,14 @@ function normalizeFallback(value: string | boolean | undefined): string | false 
   if (trimmed === '') return DEFAULT_INDEX;
   const withSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   return withSlash.endsWith('/') ? `${withSlash}index.html` : withSlash;
+}
+
+function normalizeIndex(value: string | boolean | undefined): string | false {
+  if (value === false) return false;
+  if (value === undefined || value === true) return 'index.html';
+  const trimmed = value.trim();
+  if (trimmed === '' || trimmed === 'none') return false;
+  return trimmed.replace(/^[./]+/, '');
 }
 
 function normalizeCors(value: string | boolean | undefined): string | false {
@@ -102,6 +116,7 @@ export async function resolveOptions(input: ServeOptions = {}): Promise<Resolved
     fallback,
     cors: normalizeCors(input.cors),
     listing: input.listing ?? true,
+    index: normalizeIndex(input.index),
     log: input.log ?? false,
     https,
     httpsPort,

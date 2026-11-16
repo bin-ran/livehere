@@ -61,6 +61,14 @@ const command = defineCommand({
       description: '目录列表（默认开启，关闭用 --no-listing）',
       negativeDescription: '关闭目录列表',
     },
+    browse: {
+      type: 'boolean',
+      description: '目录请求一律显示列表，不自动打开入口文件',
+    },
+    index: {
+      type: 'string',
+      description: '目录入口文件名（默认 index.html）',
+    },
     silent: {
       type: 'boolean',
       alias: 's',
@@ -127,6 +135,7 @@ const command = defineCommand({
           fallback: asString(args.fallback),
           cors: readCors(args.cors),
           listing: asBoolean(args.listing),
+          index: asBoolean(args.browse) === true ? false : (asString(args.index) ?? undefined),
           log: asBoolean(args.log),
           https: asBoolean(args.https),
           httpsPort: parsePortOption(args['https-port']),

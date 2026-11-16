@@ -77,6 +77,14 @@ describe('resolveOptions 归一化', () => {
     );
   });
 
+  it('index 默认 index.html，可关闭也可改名', async () => {
+    expect((await resolveOptions({ root: workspace })).index).toBe('index.html');
+    expect((await resolveOptions({ root: workspace, index: true })).index).toBe('index.html');
+    expect((await resolveOptions({ root: workspace, index: false })).index).toBe(false);
+    expect((await resolveOptions({ root: workspace, index: 'home.html' })).index).toBe('home.html');
+    expect((await resolveOptions({ root: workspace, index: './app.html' })).index).toBe('app.html');
+  });
+
   it('fallback 越界时报错，而不是等到运行时才 403', async () => {
     await expect(resolveOptions({ root: workspace, fallback: '/../outside.html' })).rejects.toThrow(
       'fallback 必须是 root 内的路径',

@@ -9,6 +9,7 @@ const config: ResolvedOptions = {
   fallback: DEFAULT_INDEX,
   cors: false,
   listing: true,
+  index: 'index.html',
   log: false,
   https: false,
   httpsPort: false,
