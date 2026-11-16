@@ -123,6 +123,9 @@ export default defineConfig({
 - **静态文件用 `sirv`**：带 ETag、`dev` 模式关强缓存、`.br`/`.gz` 走标准 `Accept-Encoding` 协商
 - **目录索引**：`/sub/` 有 `index.html` 就直出它；`/sub` 是目录但缺尾斜杠时 301 到 `/sub/`
   （不猜扩展名，`/about` 不会变成 `about.html`）
+- **预览 vs 下载**：`.conf` / `.ini` / `.env` / `.log` / 脚本类等「不该在浏览器里看」的扩展名强制
+  `Content-Disposition: attachment`；未知扩展名按 `application/octet-stream` 下载，不留给浏览器嗅探
+  （并统一加 `X-Content-Type-Options: nosniff`）。目录列表里每个文件另有 `↓` 下载入口
 - **目录列表自研**：零依赖、HTML 转义正确、目录优先排序
 - **HTTPS 证书现场生成**：EC P-256，不落盘、不会过期（内置证书过期是很多老工具的经典事故）
 - **端口占用**：非 `auto` 时给出明确错误；`auto` 时从 8000 顺延最多 20 次，再退回系统分配

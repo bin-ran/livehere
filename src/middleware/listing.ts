@@ -82,10 +82,13 @@ function renderListing(pathname: string, entries: Entry[]): string {
   const parent = parentHref(pathname);
   const rows = entries.map((entry) => {
     const name = `${entry.name}${entry.isDir ? '/' : ''}`;
+    const href = escapeHtml(entryHref(pathname, entry));
     const meta = entry.isDir
       ? '—'
       : `${formatBytes(entry.size)} · ${entry.mtime.toISOString().slice(0, 16).replace('T', ' ')}`;
-    return `<li><a href="${escapeHtml(entryHref(pathname, entry))}">${escapeHtml(name)}</a><span class="meta">${escapeHtml(meta)}</span></li>`;
+    // 文件额外给一个下载入口：预览与「拿走」是两种诉求
+    const download = entry.isDir ? '' : `<a class="dl" href="${href}" download title="下载">↓</a>`;
+    return `<li><a href="${href}">${escapeHtml(name)}</a>${download}<span class="meta">${escapeHtml(meta)}</span></li>`;
   });
 
   return `<!doctype html>
@@ -103,6 +106,8 @@ ul{list-style:none;margin:1.25rem 0 0;padding:0;border-top:1px solid rgba(128,12
 li{display:flex;justify-content:space-between;gap:1rem;padding:.45rem .25rem;border-bottom:1px solid rgba(128,128,128,.15)}
 a{color:inherit;text-decoration:none;word-break:break-all}
 a:hover{text-decoration:underline}
+.dl{flex:none;margin-left:.5rem;padding:0 .25rem;opacity:.5;text-decoration:none}
+.dl:hover{opacity:1;text-decoration:none}
 .meta{flex:none;font-size:.8rem;opacity:.6;font-variant-numeric:tabular-nums}
 </style>
 </head>

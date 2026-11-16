@@ -43,6 +43,9 @@ beforeAll(async () => {
   await writeFile(path.join(root, 'site', 'index.html'), '<h1>site index</h1>');
   await writeFile(path.join(root, 'app', 'a.txt'), 'a');
   await writeFile(path.join(root, '.env'), 'SECRET=1');
+  await writeFile(path.join(root, 'nginx.conf'), 'server { listen 80; }');
+  await writeFile(path.join(root, 'app.ini'), 'a=1');
+  await writeFile(path.join(root, 'data.xyz'), 'binary');
 
   handle = await createServer({ root, port: 0 });
   base = handle.url;
@@ -56,6 +59,9 @@ afterAll(async () => {
     'site/index.html',
     'app/a.txt',
     '.env',
+    'nginx.conf',
+    'app.ini',
+    'data.xyz',
   ]) {
     await rm(path.join(root, relative), { force: true });
   }
@@ -146,6 +152,47 @@ describe('目录索引', () => {
       await rm(path.join(dir, 'index.html'), { force: true });
       await rmdir(dir);
     }
+  });
+});
+
+describe('下载与预览', () => {
+  it('.conf / .ini 强制下载（Content-Disposition: attachment）', async () => {
+    for (const name of ['nginx.conf', 'app.ini']) {
+      const response = await fetch(`${base}${name}`);
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-disposition')).toContain('attachment');
+    }
+  });
+
+  it('未知扩展名按二进制下载，不留给浏览器嗅探', async () => {
+    const response = await fetch(`${base}data.xyz`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('application/octet-stream');
+    expect(response.headers.get('content-disposition')).toContain('attachment');
+  });
+
+  it('.txt 仍然内联预览，不打 attachment', async () => {
+    const response = await fetch(`${base}hello.txt`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-disposition')).toBeNull();
+  });
+
+  it('静态响应带 nosniff', async () => {
+    const response = await fetch(`${base}hello.txt`);
+    expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+  });
+
+  it('列表页给文件提供下载入口，目录没有', async () => {
+    const body = await (await fetch(base)).text();
+    const rows = body.split('<li>');
+
+    const fileRow = rows.find((row) => row.includes('hello.txt'));
+    const dirRow = rows.find((row) => row.includes('>app/<'));
+
+    expect(fileRow).toContain('download');
+    expect(dirRow).not.toContain('download');
   });
 });
 
