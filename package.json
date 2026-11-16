@@ -64,7 +64,7 @@
   "dependencies": {},
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.6.6",
     "bumpp": "^12.3.0",
     "chokidar": "^6.0.0",
     "citty": "^0.2.2",
