@@ -1,21 +1,31 @@
 # livd
 
+> 命令行叫 `livd`，npm 包名是 `@binran/livd`（`livd` 这个无作用域名被 npm 的相似名称策略拦下，
+> 它与 `livan` / `lit` / `lib0` / `levn` / `uid` / `ulid` 编辑距离太近）。
+
 [![CI](https://github.com/bin-ran/livd/actions/workflows/ci.yml/badge.svg)](https://github.com/bin-ran/livd/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/livd.svg)](https://www.npmjs.com/package/livd)
-[![npm downloads](https://img.shields.io/npm/dm/livd.svg)](https://www.npmjs.com/package/livd)
-[![license](https://img.shields.io/npm/l/livd.svg)](./LICENSE)
-[![node](https://img.shields.io/node/v/livd.svg)](https://nodejs.org)
+[![npm version](https://img.shields.io/npm/v/@binran/livd.svg)](https://www.npmjs.com/package/@binran/livd)
+[![npm downloads](https://img.shields.io/npm/dm/@binran/livd.svg)](https://www.npmjs.com/package/@binran/livd)
+[![license](https://img.shields.io/npm/l/@binran/livd.svg)](./LICENSE)
+[![node](https://img.shields.io/node/v/@binran/livd.svg)](https://nodejs.org)
 
 Serve a folder over HTTP in one command. **Safe by default**: binds to loopback, refuses dotfiles and
 path traversal, and never crashes on a busy port.
 
 ```sh
-npx livd                       # serve current folder on 127.0.0.1:8000
-npx livd ./dist                # serve a specific folder
-npx livd ./dist -p 3000 -f index.html
-npx livd ./dist -f index.html --port auto --host 0.0.0.0
-npx livd ./dist -w                 # 保存文件后浏览器自动刷新
-npx livd ./dist -x http://localhost:7000/api   # 把 /api 反代到后端
+npx @binran/livd                                # 当前目录，http://127.0.0.1:8000
+npx @binran/livd ./dist                         # 指定目录
+npx @binran/livd ./dist -p 3000 -f index.html   # 端口 + SPA fallback
+npx @binran/livd ./dist -p auto --host 0.0.0.0  # 端口自动顺延 + 暴露到局域网
+npx @binran/livd ./dist -w                      # 保存文件后浏览器自动刷新
+npx @binran/livd ./dist -x http://localhost:7000/api   # 把 /api 反代到后端
+```
+
+装成全局后命令是 `livd`，下面的示例都按这个写法：
+
+```sh
+npm i -g @binran/livd
+livd ./dist -p 3000 -w
 ```
 
 > livd 是一个轻量静态文件服务器。与 `serve` / `http-server` 相比，它的重点是**默认安全**与**可扩展的中间件内核**；
@@ -24,9 +34,11 @@ npx livd ./dist -x http://localhost:7000/api   # 把 /api 反代到后端
 ## 安装
 
 ```sh
-npm i -g livd        # 全局命令（也可以用 pnpm add -g livd）
-npx livd             # 不安装直接用（或 pnpm dlx livd）
+npm i -g @binran/livd        # 全局命令（或 pnpm add -g @binran/livd）
+npx @binran/livd             # 不安装直接用（或 pnpm dlx @binran/livd）
 ```
+
+装好后命令行是 `livd`（`bin` 名与包名的作用域部分无关）。
 
 要求 Node.js >= **22.18**。运行时零依赖，装完 `node_modules` 里只有 `livd` 一个包。
 
@@ -271,14 +283,16 @@ tag 推上去后，CI 用 **npm Trusted Publishing（OIDC）** 发布，不需�
 2. **手动发布一次**，让包在 npm 上存在：
    ```sh
    npm login
-   npm publish --access public
+   npm publish
    ```
+   `package.json` 里已有 `publishConfig.access: "public"`，scoped 包不用每次带 `--access`。
+   `pnpm verify:meta` 会检查这条是否存在（漏了会发成私有包）。
 3. npm 后台 **Settings → Trusted publishing → Add trusted publisher**，选 GitHub Actions：
 
    | 字段                 | 值                                                                                             |
    | -------------------- | ---------------------------------------------------------------------------------------------- |
-   | Organization or user | 你的 GitHub 用户名                                                                             |
-   | Repository           | 仓库名                                                                                         |
+   | Organization or user | `bin-ran`                                                                                      |
+   | Repository           | `livd`                                                                                         |
    | Workflow filename    | `release.yml`（只写文件名，带 `.yml`，且必须真实存在于 `.github/workflows/`）                  |
    | Environment name     | 留空（除非用了 GitHub Environments）                                                           |
    | Allowed actions      | **勾上允许 `npm publish`**（默认只允许 `npm stage publish`，我们的工作流用的是 `npm publish`） |
