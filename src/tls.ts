@@ -17,8 +17,8 @@ const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 export async function loadTlsMaterial(config: ResolvedOptions): Promise<TlsMaterial> {
   if (config.cert !== undefined && config.key !== undefined) {
     const [cert, key] = await Promise.all([
-      fs.readFile(config.cert, 'utf8'),
-      fs.readFile(config.key, 'utf8'),
+      readPem(config.cert, '证书'),
+      readPem(config.key, '私钥'),
     ]);
     return { cert, key };
   }
@@ -32,4 +32,16 @@ export async function loadTlsMaterial(config: ResolvedOptions): Promise<TlsMater
   });
 
   return { cert: pems.cert, key: pems.private };
+}
+
+async function readPem(file: string, label: string): Promise<string> {
+  try {
+    return await fs.readFile(file, 'utf8');
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException | undefined)?.code;
+    if (code === 'ENOENT') {
+      throw new Error(`${label}文件不存在：${file}`, { cause: error });
+    }
+    throw new Error(`无法读取${label}文件：${file}`, { cause: error });
+  }
 }

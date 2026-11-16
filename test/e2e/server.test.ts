@@ -244,6 +244,12 @@ describe('生命周期', () => {
     await expect(fetch(server.url)).rejects.toThrow();
   });
 
+  it('证书文件不存在时抛出可读错误', async () => {
+    await expect(
+      createServer({ root, port: 0, cert: 'no-cert.pem', key: 'no-key.pem' }),
+    ).rejects.toThrow('证书文件不存在');
+  });
+
   it('端口已被占用时抛出可读错误', async () => {
     const first = await createServer({ root, port: 0 });
     try {
