@@ -7,6 +7,7 @@ import { createFallback } from './middleware/fallback';
 import { createLogger } from './middleware/logger';
 import { createStatic } from './middleware/static';
 import { guard } from './middleware/guard';
+import { createIndexFile } from './middleware/index-file';
 import { collectPluginHandlers, type UpgradeListener } from './plugin';
 import { resolveOptions, type ResolvedOptions, type ServeOptions } from './options';
 import { loadTlsMaterial } from './tls';
@@ -39,7 +40,13 @@ async function buildHandler(
 ): Promise<{ handler: Handler; upgrades: UpgradeListener[] }> {
   const log = config.log ? (message: string) => console.log(message) : () => {};
   const { pre, post, upgrade } = await collectPluginHandlers(config.plugins, config, log);
-  const handlers: Handler[] = [createLogger(config.log), createCors(config.cors), guard];
+  const handlers: Handler[] = [
+    createLogger(config.log),
+    createCors(config.cors),
+    guard,
+    // 目录索引要在 fallback 之前：/sub/ → /sub/index.html，避免被 SPA 兜底抢走
+    createIndexFile(),
+  ];
 
   if (config.fallback !== false) {
     handlers.push(createFallback(config.fallback));

@@ -124,6 +124,15 @@ describe('HTML 注入', () => {
     expect(response.headers.get('cache-control')).toBe('no-store');
   });
 
+  it('目录索引（/ 走 index.html）同样会被注入', async () => {
+    const response = await fetch(base, { headers: { accept: 'text/html' } });
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).toContain('<h1>hi</h1>');
+    expect(html).toContain('<script src="/_livehere/live.js" defer></script>');
+  });
+
   it('非 HTML 响应不注入', async () => {
     const response = await fetch(`${base}notes.txt`, { headers: { accept: 'text/html' } });
     const body = await response.text();

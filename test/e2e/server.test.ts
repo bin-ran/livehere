@@ -36,9 +36,11 @@ function rawGet(pathname: string): Promise<{ status: number; body: string }> {
 beforeAll(async () => {
   root = await mkdtemp(path.join(os.tmpdir(), 'livehere-e2e-'));
   await mkdir(path.join(root, 'public'));
+  await mkdir(path.join(root, 'site'));
   await mkdir(path.join(root, 'app'));
   await writeFile(path.join(root, 'hello.txt'), HELLO);
   await writeFile(path.join(root, 'public', 'index.html'), '<h1>public index</h1>');
+  await writeFile(path.join(root, 'site', 'index.html'), '<h1>site index</h1>');
   await writeFile(path.join(root, 'app', 'a.txt'), 'a');
   await writeFile(path.join(root, '.env'), 'SECRET=1');
 
@@ -48,10 +50,17 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await handle.close();
-  for (const relative of ['hello.txt', 'public/index.html', 'app/a.txt', '.env']) {
+  for (const relative of [
+    'hello.txt',
+    'public/index.html',
+    'site/index.html',
+    'app/a.txt',
+    '.env',
+  ]) {
     await rm(path.join(root, relative), { force: true });
   }
   await rmdir(path.join(root, 'public'));
+  await rmdir(path.join(root, 'site'));
   await rmdir(path.join(root, 'app'));
   await rmdir(root);
 });
@@ -98,6 +107,45 @@ describe('目录列表', () => {
     expect(body).toContain('hello.txt');
     expect(body).toContain('app/');
     expect(body).not.toContain('.env');
+  });
+});
+
+describe('目录索引', () => {
+  it('/sub/ 直接返回 dir/index.html', async () => {
+    const response = await fetch(`${base}site/`);
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('<h1>site index</h1>');
+  });
+
+  it('/sub 是目录但没有尾斜杠时 301 到 /sub/', async () => {
+    const response = await fetch(`${base}site`, { redirect: 'manual' });
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get('location')).toBe('/site/');
+  });
+
+  it('301 保留查询串', async () => {
+    const response = await fetch(`${base}site?x=1&y=2`, { redirect: 'manual' });
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get('location')).toBe('/site/?x=1&y=2');
+  });
+
+  it('根目录有 index.html 时直接返回它，而不是目录列表', async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'livehere-index-'));
+    await writeFile(path.join(dir, 'index.html'), '<h1>hello index</h1>');
+    const server = await createServer({ root: dir, port: 0 });
+
+    try {
+      const rootResponse = await fetch(server.url);
+      expect(rootResponse.status).toBe(200);
+      expect(await rootResponse.text()).toBe('<h1>hello index</h1>');
+    } finally {
+      await server.close();
+      await rm(path.join(dir, 'index.html'), { force: true });
+      await rmdir(dir);
+    }
   });
 });
 
