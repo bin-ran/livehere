@@ -64,59 +64,128 @@ async function readEntries(dir: string): Promise<Entry[]> {
   });
 }
 
-function parentHref(pathname: string): string | undefined {
-  const current = trimTrailingSlash(pathname);
-  if (current === '' || current === '/') return undefined;
-  const parent = current.slice(0, current.lastIndexOf('/'));
-  return `${parent}/`;
-}
-
 function entryHref(pathname: string, entry: Entry): string {
   const encoded = encodeURIComponent(entry.name);
   const base = pathname.endsWith('/') ? pathname : `${pathname}/`;
   return `${base}${encoded}${entry.isDir ? '/' : ''}`;
 }
 
+/** 面包屑：/ → data → images，每段可点 */
+function renderBreadcrumb(pathname: string): string {
+  const segments = trimTrailingSlash(pathname)
+    .split('/')
+    .filter((segment) => segment !== '');
+
+  const parts = [`<a href="/">根目录</a>`];
+  let accumulated = '';
+  for (const segment of segments) {
+    accumulated += `/${segment}`;
+    parts.push(
+      `<span class="sep">/</span><a href="${escapeHtml(`${encodeURI(accumulated)}/`)}">${escapeHtml(segment)}</a>`,
+    );
+  }
+  return parts.join('');
+}
+
+const FOLDER_ICON =
+  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4l1.2 1.5h7.8a.8.8 0 0 1 .8.8v6.4a.8.8 0 0 1-.8.8H1.5a.8.8 0 0 1-.8-.8V4.3a.8.8 0 0 1 .8-.8Z"/></svg>';
+const FILE_ICON =
+  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.5h5l3.5 3.5v9a.8.8 0 0 1-.8.8H4a.8.8 0 0 1-.8-.8V2.3a.8.8 0 0 1 .8-.8Z"/></svg>';
+const DOWNLOAD_ICON =
+  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v7M5 6.8 8 9.8l3-3M3 12.5h10"/></svg>';
+
 function renderListing(pathname: string, entries: Entry[]): string {
-  const title = `Index of ${pathname}`;
-  const parent = parentHref(pathname);
+  const browseable = trimTrailingSlash(pathname) || '/';
+
   const rows = entries.map((entry) => {
     const name = `${entry.name}${entry.isDir ? '/' : ''}`;
     const href = escapeHtml(entryHref(pathname, entry));
+    const icon = entry.isDir ? FOLDER_ICON : FILE_ICON;
+    const download = entry.isDir
+      ? ''
+      : `<a class="dl" href="${href}" download title="下载 ${escapeHtml(entry.name)}" aria-label="下载">${DOWNLOAD_ICON}</a>`;
     const meta = entry.isDir
-      ? '—'
-      : `${formatBytes(entry.size)} · ${entry.mtime.toISOString().slice(0, 16).replace('T', ' ')}`;
-    // 文件额外给一个下载入口：预览与「拿走」是两种诉求
-    const download = entry.isDir ? '' : `<a class="dl" href="${href}" download title="下载">↓</a>`;
-    return `<li><a href="${href}">${escapeHtml(name)}</a>${download}<span class="meta">${escapeHtml(meta)}</span></li>`;
+      ? '<span class="dim">目录</span>'
+      : `<span>${escapeHtml(formatBytes(entry.size))}</span><time datetime="${entry.mtime.toISOString()}">${entry.mtime.toISOString().slice(0, 16).replace('T', ' ')}</time>`;
+
+    return `<li class="row${entry.isDir ? ' dir' : ''}">
+<a class="name" href="${href}"><span class="ico">${icon}</span><span>${escapeHtml(name)}</span></a>
+${download}
+<span class="meta">${meta}</span>
+</li>`;
   });
+
+  const empty =
+    entries.length === 0
+      ? '<p class="empty">这个目录是空的</p>'
+      : `<ul class="list">${rows.join('\n')}</ul>`;
 
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escapeHtml(title)}</title>
+<title>${escapeHtml(browseable)} · livehere</title>
 <style>
-:root{color-scheme:light dark}
-body{margin:0;padding:2rem 1.25rem;font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
-h1{margin:0 0 .25rem;font-size:1.1rem;font-weight:600;word-break:break-all}
-h1 small{display:block;margin-top:.35rem;font-weight:400;opacity:.6;font-size:.8rem}
-ul{list-style:none;margin:1.25rem 0 0;padding:0;border-top:1px solid rgba(128,128,128,.25)}
-li{display:flex;justify-content:space-between;gap:1rem;padding:.45rem .25rem;border-bottom:1px solid rgba(128,128,128,.15)}
-a{color:inherit;text-decoration:none;word-break:break-all}
-a:hover{text-decoration:underline}
-.dl{flex:none;margin-left:.5rem;padding:0 .25rem;opacity:.5;text-decoration:none}
-.dl:hover{opacity:1;text-decoration:none}
-.meta{flex:none;font-size:.8rem;opacity:.6;font-variant-numeric:tabular-nums}
+:root{
+  color-scheme:light dark;
+  --fg:#1f2328; --bg:#f6f7f9; --surface:#fff; --line:#e6e8eb;
+  --dim:#6b7280; --accent:#0d6efd; --hover:#f0f3f7;
+}
+@media (prefers-color-scheme:dark){
+  :root{--fg:#e6e8eb; --bg:#16181c; --surface:#1e2126; --line:#2c3037; --dim:#9aa3ad; --accent:#6ba8ff; --hover:#252a31;}
+}
+*{box-sizing:border-box}
+body{
+  margin:0; padding:2.5rem 1rem 4rem; background:var(--bg); color:var(--fg);
+  font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.page{max-width:880px;margin:0 auto}
+header{margin-bottom:1rem}
+.crumb{font-size:1.15rem;font-weight:600;word-break:break-all}
+.crumb a{color:inherit;text-decoration:none}
+.crumb a:hover{color:var(--accent)}
+.crumb .sep{margin:0 .35rem;color:var(--dim);font-weight:400}
+.sub{margin-top:.4rem;font-size:.8rem;color:var(--dim)}
+.list{list-style:none;margin:0;padding:.35rem;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:.75rem;padding:.55rem .7rem;border-radius:8px}
+.row + .row{margin-top:2px}
+.row:hover{background:var(--hover)}
+.name{display:flex;align-items:center;gap:.6rem;min-width:0;color:inherit;text-decoration:none}
+.name span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dir .name{font-weight:550}
+.ico{display:inline-flex;flex:none;width:18px;height:18px;color:var(--dim)}
+.dir .ico{color:#e0a400}
+.ico svg{width:100%;height:100%;fill:currentColor}
+.dl{flex:none;display:inline-flex;width:26px;height:26px;align-items:center;justify-content:center;border-radius:6px;color:var(--dim);opacity:.35;transition:opacity .12s,background .12s}
+.dl svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.row:hover .dl,.dl:focus-visible{opacity:1}
+.dl:hover{background:var(--line);color:var(--fg)}
+.meta{display:flex;gap:.9rem;font-size:.8rem;color:var(--dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.meta span:first-child{min-width:4.75rem;text-align:right}
+.meta time{min-width:10.5rem;text-align:right}
+.dim{color:var(--dim);opacity:.7}
+.row.dir + .row:not(.dir){margin-top:.5rem;padding-top:.75rem;border-top:1px solid var(--line)}
+.empty{margin:1.5rem 0;color:var(--dim);text-align:center;padding:2.5rem;background:var(--surface);border:1px dashed var(--line);border-radius:12px}
+@media (max-width:620px){
+  body{padding:1.25rem .75rem 3rem}
+  .row{grid-template-columns:1fr auto;row-gap:.15rem}
+  .meta{grid-column:1/-1;padding-left:calc(18px + .6rem)}
+  .meta time{min-width:0}
+  .dl{opacity:1}
+  .dir .meta{display:none}
+}
 </style>
 </head>
 <body>
-<h1>${escapeHtml(title)}<small>livehere · ${entries.length} 项</small></h1>
-<ul>
-${parent === undefined ? '' : `<li><a href="${escapeHtml(parent)}">../</a><span class="meta">上级目录</span></li>`}
-${rows.join('\n')}
-</ul>
+<div class="page">
+<header>
+  <nav class="crumb">${renderBreadcrumb(pathname)}</nav>
+  <div class="sub">livehere · ${entries.length} 项</div>
+</header>
+${empty}
+</div>
 </body>
 </html>
 `;

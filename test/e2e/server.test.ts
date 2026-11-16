@@ -186,13 +186,24 @@ describe('下载与预览', () => {
 
   it('列表页给文件提供下载入口，目录没有', async () => {
     const body = await (await fetch(base)).text();
-    const rows = body.split('<li>');
+    const rows = body.split('<li').filter((row) => row.includes('class="row'));
 
-    const fileRow = rows.find((row) => row.includes('hello.txt'));
+    const fileRow = rows.find((row) => row.includes('>hello.txt<'));
     const dirRow = rows.find((row) => row.includes('>app/<'));
 
+    expect(fileRow).toBeDefined();
     expect(fileRow).toContain('download');
+    expect(dirRow).toBeDefined();
     expect(dirRow).not.toContain('download');
+  });
+
+  it('列表页渲染目录/文件图标与面包屑', async () => {
+    const body = await (await fetch(base)).text();
+
+    expect(body).toContain('<svg');
+    expect(body).toContain('class="crumb"');
+    expect(body).toContain('<time datetime=');
+    expect(body).toContain('>目录<');
   });
 });
 
