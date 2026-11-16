@@ -86,6 +86,9 @@ livehere -x webpack.config.js             # 直接复用 devServer.proxy
 livehere -x proxy.config.js               # 自己的配置文件
 ```
 
+> ⚠️ 默认监听 `0.0.0.0`：同一局域网内的任何设备都能**读取**这个目录（只读，不提供上传）。
+> 在公共 Wi-Fi 等环境下请加 `--local`。点文件与越界请求仍然一律 403。
+
 ## 配置文件
 
 服务目录下放 `livehere.config.ts`（或 `.js` / `.mjs` / `.json`）即可自动生效：
