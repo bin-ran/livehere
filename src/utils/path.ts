@@ -54,3 +54,9 @@ export function trimTrailingSlash(pathname: string): string {
   if (pathname.length <= 1) return pathname;
   return pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
 }
+
+/** `?list` 是「这一次我要看目录」的信号，目录索引与 SPA fallback 都要让路 */
+export function hasListQuery(search: string): boolean {
+  if (search === '' || search === '?') return false;
+  return new URLSearchParams(search).has('list');
+}

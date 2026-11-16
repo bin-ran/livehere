@@ -173,6 +173,28 @@ describe('目录索引', () => {
     }
   });
 
+  it('fallback 模式下 ?list 同样绕过 SPA 改写', async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'livehere-list-spa-'));
+    await writeFile(path.join(dir, 'index.html'), '<h1>spa shell</h1>');
+    await writeFile(path.join(dir, 'note.txt'), 'note');
+    const server = await createServer({ root: dir, port: 0, fallback: true });
+
+    try {
+      // 普通导航被 SPA 兜底接管（浏览器导航会带 Accept: text/html）
+      const deep = await fetch(`${server.url}deep/link`, { headers: { accept: 'text/html' } });
+      expect(await deep.text()).toBe('<h1>spa shell</h1>');
+
+      const listed = await (await fetch(`${server.url}?list`)).text();
+      expect(listed).toContain('note.txt');
+      expect(listed).not.toContain('spa shell');
+    } finally {
+      await server.close();
+      await rm(path.join(dir, 'index.html'), { force: true });
+      await rm(path.join(dir, 'note.txt'), { force: true });
+      await rmdir(dir);
+    }
+  });
+
   it('?list 可以绕过入口文件看目录', async () => {
     const dir = await mkdtemp(path.join(os.tmpdir(), 'livehere-list-'));
     await writeFile(path.join(dir, 'index.html'), '<h1>entry</h1>');

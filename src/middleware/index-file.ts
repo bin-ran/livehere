@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import type { Req, Handler } from '../types';
-import { pathnameOf, resolveWithinRoot } from '../utils/path';
+import { hasListQuery, pathnameOf, resolveWithinRoot } from '../utils/path';
 
 /**
  * 目录索引与尾斜杠规范化。
@@ -27,7 +27,7 @@ export function createIndexFile(index: string | false): Handler {
     const search = searchOf(ctx.req);
 
     if (pathname.endsWith('/')) {
-      if (index === false || wantsListing(search)) return false;
+      if (index === false || hasListQuery(search)) return false;
 
       const candidate = resolveWithinRoot(ctx.root, `${pathname}${index}`);
       if (candidate !== undefined && (await isFile(candidate))) {
@@ -40,17 +40,11 @@ export function createIndexFile(index: string | false): Handler {
     if (target === undefined || !(await isDirectory(target))) return false;
 
     ctx.res.writeHead(301, {
-      Location: `${encodeURI(pathname)}/${wantsListing(search) ? '?list' : search}`,
+      Location: `${encodeURI(pathname)}/${hasListQuery(search) ? '?list' : search}`,
     });
     ctx.res.end();
     return true;
   };
-}
-
-/** `?list` 是一次性的「看目录」逃生口：入口文件不会把列表页永久挡住 */
-function wantsListing(search: string): boolean {
-  if (search === '') return false;
-  return new URLSearchParams(search).has('list');
 }
 
 function searchOf(req: Req): string {

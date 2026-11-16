@@ -19,6 +19,7 @@ npx livehere ./dist                         # 指定目录
 npx livehere ./dist -p 3000 -f index.html   # 端口 + SPA fallback
 npx livehere ./dist -p auto                 # 端口自动顺延（默认已对局域网开放）
 npx livehere ./dist --local                 # 只给本机用
+npx livehere ./dist --browse                # 有 index.html 也先看目录列表
 npx livehere ./dist -w                      # 保存文件后浏览器自动刷新
 npx livehere ./dist -x http://localhost:7000/api   # 把 /api 反代到后端
 ```
@@ -103,15 +104,20 @@ import { defineConfig } from 'livehere';
 
 export default defineConfig({
   port: 3000,
-  fallback: true,
+  host: '127.0.0.1', // 只给本机用；想共享到局域网就用默认的 0.0.0.0
   cors: true,
-  listing: false,
+  listing: true,
+  index: false, // 等同 --browse：目录请求一律显示列表
 });
 ```
 
 - 查找顺序：`livehere.config.ts` → `.mts` → `.js` → `.mjs` → `.json`
 - 显式指定：`livehere --config ./config/livehere.mjs`
 - **优先级：命令行 > 配置文件 > 默认值**（例如配置里 `listing: false`，命令行加 `--listing` 依然生效）
+- `index` 接受 `false`（等同 `--browse`）或别的文件名（如 `'home.html'`）
+- `index: false`（`--browse`）与 `fallback` **互斥**：fallback 会把 `/`、`/sub/` 这类无扩展名
+  导航统一改写到入口文件，目录列表就永远看不到，所以同时配置会在启动时直接报错。
+  想两者都要的话别关 index，改用 `?list` 临时看目录
 - `.ts` 用 Node ≥ 22.18 的原生类型擦除加载；更早的版本会给出可读提示，改用 `.js` / `.mjs` / `.json` 即可
 - 配置里也可以写 `plugins`（例如 `livePlugin()` / `proxyPlugin()`），CLI 传入的插件排在其后
 

@@ -77,6 +77,19 @@ describe('resolveOptions 归一化', () => {
     );
   });
 
+  it('index 关闭时 fallback 一律互斥', async () => {
+    await expect(resolveOptions({ root: workspace, index: false, fallback: true })).rejects.toThrow(
+      '互斥',
+    );
+    await expect(
+      resolveOptions({ root: workspace, index: false, fallback: 'app.html' }),
+    ).rejects.toThrow('互斥');
+
+    // 不关 index 时 fallback 正常
+    const ok = await resolveOptions({ root: workspace, fallback: 'app.html' });
+    expect(ok.fallback).toBe('/app.html');
+  });
+
   it('index 默认 index.html，可关闭也可改名', async () => {
     expect((await resolveOptions({ root: workspace })).index).toBe('index.html');
     expect((await resolveOptions({ root: workspace, index: true })).index).toBe('index.html');

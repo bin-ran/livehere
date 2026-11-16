@@ -91,12 +91,21 @@ export async function resolveOptions(input: ServeOptions = {}): Promise<Resolved
   const port = normalizePort(input.port, 'port');
   const host = input.host?.trim() || DEFAULT_HOST;
 
+  const index = normalizeIndex(input.index);
+
   const hasCert = input.cert !== undefined;
   const hasKey = input.key !== undefined;
   if (hasCert !== hasKey) {
     throw new Error('cert 与 key 必须同时提供');
   }
   const fallback = normalizeFallback(input.fallback);
+  if (index === false && fallback !== false) {
+    throw new Error(
+      'index: false（--browse）与 fallback 互斥：fallback 会把 /、/sub/ 这类无扩展名导航' +
+        '统一改写到入口文件，目录列表就永远看不到。去掉 fallback 才能浏览目录；' +
+        '只是偶尔想看一次目录，可以用 ?list',
+    );
+  }
   if (fallback !== false && resolveWithinRoot(root, fallback) === undefined) {
     throw new Error(`fallback 必须是 root 内的路径，收到：${fallback}`);
   }
@@ -116,7 +125,7 @@ export async function resolveOptions(input: ServeOptions = {}): Promise<Resolved
     fallback,
     cors: normalizeCors(input.cors),
     listing: input.listing ?? true,
-    index: normalizeIndex(input.index),
+    index,
     log: input.log ?? false,
     https,
     httpsPort,
