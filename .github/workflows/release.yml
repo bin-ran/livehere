@@ -18,23 +18,27 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
       - uses: actions/setup-node@v5
         with:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
-          cache: npm
+          cache: pnpm
 
-      # trusted publishing 需要较新的 npm
+      # trusted publishing 需要较新的 npm（发布仍用 npm CLI）
       - name: Update npm
         run: npm install -g npm@latest
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       - name: Verify
-        run: npm run check && npx oxfmt --check src test
+        run: pnpm check && pnpm exec oxfmt --check src test scripts
 
       - name: Build
-        run: npm run build
+        run: pnpm build
 
       - name: Publish
         run: npm publish --provenance --access public

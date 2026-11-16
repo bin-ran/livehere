@@ -221,6 +221,19 @@ export const jsonHeader: Plugin = {
 
 `Handler` 返回 `true` 表示「已处理，短路」；返回 `false` 则交给下一个。
 
+## 本地开发
+
+```sh
+pnpm install                     # 依赖安装（仓库使用 pnpm，锁文件为 pnpm-lock.yaml）
+pnpm test                        # vitest
+pnpm check                       # typecheck + lint + test
+pnpm build                       # tsdown 打包
+pnpm smoke                       # 用 dist 真实产物起服务做冒烟测试
+```
+
+CI 用 `pnpm install --frozen-lockfile`，锁文件与 `package.json` 不一致时会直接失败；
+发布仍由 npm CLI 执行（`npm publish --provenance`），以获得 OIDC provenance。
+
 ## 发布流程
 
 ```sh

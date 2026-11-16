@@ -16,28 +16,32 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: npm run typecheck
+        run: pnpm typecheck
 
       - name: Lint
-        run: npm run lint
+        run: pnpm lint
 
       - name: Format check
-        run: npx oxfmt --check src test scripts
+        run: pnpm exec oxfmt --check src test scripts
 
       - name: Test
-        run: npm test
+        run: pnpm test
 
       - name: Build (含 publint / attw 校验)
-        run: npm run build
+        run: pnpm build
 
       - name: Smoke test (真实产物)
-        run: npm run smoke
+        run: pnpm smoke

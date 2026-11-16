@@ -79,5 +79,6 @@
   "homepage": "https://github.com/<you>/livd#readme",
   "bugs": {
     "url": "https://github.com/<you>/livd/issues"
-  }
+  },
+  "packageManager": "pnpm@12.21.0"
 }
