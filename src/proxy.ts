@@ -212,9 +212,31 @@ async function resolveContexts(
     return { [context]: { target: url.origin } };
   }
 
-  const filePath = path.resolve(root, input);
+  const filePath = await resolveConfigPath(input, root);
   const loaded = await loadConfigFile(filePath);
   return extractContexts(loaded, filePath);
+}
+
+/**
+ * 配置文件相对「当前工作目录」解析（CLI 里最符合直觉：`livd ./dist -x webpack.config.js`），
+ * 找不到再回落到 ROOT，兼容把配置和服务目录放在一起的用法。
+ */
+async function resolveConfigPath(input: string, root: string): Promise<string> {
+  const fromCwd = path.resolve(process.cwd(), input);
+  if (await isFile(fromCwd)) return fromCwd;
+
+  const fromRoot = path.resolve(root, input);
+  if (await isFile(fromRoot)) return fromRoot;
+
+  return fromCwd;
+}
+
+async function isFile(target: string): Promise<boolean> {
+  try {
+    return (await fs.stat(target)).isFile();
+  } catch {
+    return false;
+  }
 }
 
 async function loadConfigFile(filePath: string): Promise<unknown> {

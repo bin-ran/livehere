@@ -3,7 +3,7 @@ import net from 'node:net';
 import { mkdtemp, rm, rmdir, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { proxyPlugin } from '../../src/proxy';
 import { createServer, type ServerHandle } from '../../src/server';
 
@@ -166,6 +166,27 @@ describe('proxy 配置文件', () => {
       const body = (await (await fetch(`${server.url}api/users`)).json()) as Echo;
       expect(body.url).toBe('/api/users');
     });
+  });
+
+  it('配置文件相对当前工作目录解析（不在 ROOT 内也能找到）', async () => {
+    const configDir = await mkdtemp(path.join(os.tmpdir(), 'livd-proxy-cwd-'));
+    const configPath = path.join(configDir, 'proxy.cwd.json');
+    await writeFile(
+      configPath,
+      JSON.stringify({ '/api': { target: upstreamOrigin, stripContext: true } }),
+    );
+
+    const cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue(configDir);
+    try {
+      await withProxy('proxy.cwd.json', async (server) => {
+        const body = (await (await fetch(`${server.url}api/users`)).json()) as Echo;
+        expect(body.url).toBe('/users');
+      });
+    } finally {
+      cwdSpy.mockRestore();
+      await rm(configPath, { force: true });
+      await rmdir(configDir);
+    }
   });
 
   it('配置文件不存在时给出明确错误', async () => {
